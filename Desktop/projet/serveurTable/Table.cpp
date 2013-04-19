@@ -26,7 +26,6 @@
 #define CITY 9
 #define ZIPCODE 10
 #define COUNTRY 11
-//export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/mysql5/lib/mysql/
 /////////////////////////////////////Variable globale//////////////////////////////
 const char separateur[2]="&";
 /****************************************************************************************/

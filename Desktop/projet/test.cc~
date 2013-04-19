@@ -1,0 +1,28 @@
+#include <iostream>
+//#include <winsock.h>
+#include <mysql/mysql.h>
+using namespace std;
+
+int main(){
+  MYSQL mysql;
+  mysql_init(&mysql);
+  const char* option="option";
+  mysql_options(&mysql,MYSQL_READ_DEFAULT_GROUP,option);
+  if(mysql_real_connect(&mysql,"localhost","root","azertySQL","pokerL3",0,NULL,0)){
+    mysql_query(&mysql, "SELECT * FROM Utilisateur");
+    MYSQL_RES * result = NULL;
+    MYSQL_ROW row;
+    int i=1;
+
+    result = mysql_use_result(&mysql);
+    while((row = mysql_fetch_row(result))){
+      cout<<"Resultat "<<i<<endl;
+    }
+    mysql_free_result(result);
+    mysql_close(&mysql);
+  }
+  else{
+    cout<<"Erreur"<<endl;
+  }
+  return 0;
+}

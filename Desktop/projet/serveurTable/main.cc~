@@ -1,0 +1,30 @@
+#include <iostream>
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include "Table.h"
+using namespace std;
+
+int main(int argc,const char* argv[]){
+  for(int i=0;i<argc;i++){
+    cout<<argv[i]<<endl;
+  }
+  //while(true);
+  //if(argc>4){
+  //int desc=open("~/Desktop/text.txt",O_CREAT|O_WRONLY|O_TRUNC);
+  //write(desc,"poney",10);
+  FILE* fichier=fopen("MARDaaaaaE.txt","w");
+  fputc('r',fichier);
+  fclose(fichier);
+  //exit(1);
+  Table c(atoi(argv[1]),atoi(argv[2]),atoi(argv[3]),atof(argv[4]));
+  //Table c(10,1);
+  c.run();
+    //}
+    //else{
+    //cout<<"Pb nombre d'argument"<<endl;
+    //exit(1);
+    //}
+}

@@ -1,0 +1,8 @@
+#include <iostream>
+#include "/usr/local/mysql5/include/mysql/mysql.h"
+using namespace std;
+
+void test(){
+  MYSQL util;
+  mysql_init(&util);
+}

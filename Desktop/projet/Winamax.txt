@@ -1,0 +1,43 @@
+Winamax:
+
+Winamax est un des jeux de poker les plus connus sur internet. Winamax peut se jouer sur une page internet, sur window, mac ou linux et sur android. 
+
+On s'interesse à la version window ici:
+
+Au lancement de l'application, l'interface nous demande notre adresse mail, notre mot de passe et notre date de naissance.
+
+On arrive sur une nouvelle inteface où on a plusiers choix de categorie: sit & go, cash game et tournoi. On peut choisir si on joue avec de l'argent fictif ou réel. On peut aussi accéder à notre profil, c'est à dire l'argent fictif et réel possédé, notre nom de profil, nos caractéristiques ou encore notre liste d'amis.
+
+Un chat est aussi présent pour pouvoir parler aux autres membres de Winamax 
+
+Après avoir choisi notre catégorie de jeu, un nombre de table s'offre à nous dans un menu déroulant. 
+On choisie cash game:
+Les tables présents possédent différents caratéristiques. 
+Les tables possédent un nom, un nombre de joueur maximum, le nombre de joueur présent sur la table, la mise de base pour jouer sur cette table et le type de table.
+
+On choisie tournoi:
+Les tournois possédent un nom, un nombre de joueur maximum, une date de lancement du tournoi, le prix pour jouer dans le tournoi et le type de tournoi. 
+
+On choisie sit & go: C'est un mini tournoi se passant sur une unique table.
+
+Description cash game:
+
+On arrive sur une table. Dans un premier temps, on est spectateur. On choisit à quel place où on veut s'installer(par rapport au place libre).On ne peut pas jouer si il n'y a aucune place libre. 
+On choisit l'argent qu'on veut jouer, l'argents représentent les jetons. Quand on a plus d'argent sur la table, on peut recave(remettre de l'argent sur la table). 
+
+Description tournoi: 
+
+Quand on est inscrit à un tournoi, la table se lance automatiquement. On reçois une certaine somme de jeton. On ne choisit pas notre place. Quand on a plus de jeton, on est éliminé du tournoi. 
+
+Description sit & go:
+
+C'est un mini tournoi, c'est à dire quand on a une certaine somme de jeton identique à chaque joueur et quand on a plus de jeton, on est éliminé. On choisit notre place de jeu. 
+
+Description d'une table:
+Quand on arrive sur une table, on peut jouer quand la partie précédente est finie.
+La partie fini, on reçois nos cartes(on peut encore attendre si on le veut). Le premier à miser est la personne suivant la personne possédant la grosse blind. Il mise, il peut suivre ou relancer. A la fin de son tour, c'est le joueur suivant qui joue. Si le joueur relance alors le dernier à relancer et le joueur ayant joué avant le joueur qui à relancé. On procéde ainsi sur les autres joueurs. Quand tous les joueurs ont fini. Le flop apparait et le joueur possédant la grosse blind mise en premier. On fait ainsi de suite jusqu'à:
+
+Il ne reste plus que un joueur alors le dernier joueur gagne 
+5 cartes sont sur la table alors le joueur ayant la plus grosse main gagne le pot.
+
+

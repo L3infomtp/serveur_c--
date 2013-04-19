@@ -1,0 +1,508 @@
+#ifndef TABLE_H
+#define TABLE_H
+using namespace std;
+#include <math.h>
+#include "sock/sock.h"
+#include "sock/sockdist.h"
+#include "elementJeu/Carte.h"
+#include "elementJeu/Paquet.h"
+#include "elementJeu/Spectateur.h"
+#include "elementJeu/Joueur.h"
+/**
+ *@mainpage Projet L3 : Poker
+ *Création de la classe Table
+
+ *\author LAGNIEZ Jean-Marc
+*/
+
+
+class Table{
+ private:
+    Sock brPub;
+    int descTable;
+    int descEnvoie;
+    int descRecu;
+    bool isServeur;
+    int descMax;
+    fd_set desc_en_lect;
+
+    vector<Spectateur*> spectacteurs;
+    int nbSpec;
+        
+    int nbJoueur; //Corresponds au nombre de joueur sur la table
+    int nbJMax; //Corresponds au nombre de joueur maximum sur la table
+    int joueurEnListe; // Corresponds au nombre de joueur non fold dans une partie
+    int nbJAllIn; //Corresponds au nombre de joueur all in dans une partie
+    int prochainAMiser; //Corresponds au joueur qui doit miser
+    int dernierAMiser; // Corresponds au dernier joueur qui doit miser
+    Joueur** joueurs; //Corresponds au tableau des joueurs
+    bool *actif; // Corresponds au joueur actif ou non actif(Si un joueur quitte une table après une déconexion, il devient non actif, il peut devenir non actif après demande du celui si)
+    
+    bool partieEnCours; // Si une partie est en cour alors partieEncours==true
+    int dealer; // Corresponds au dealer
+    int petiteBlind; // Corresponds à la small blind
+    int grosseBlind; // Corresponds à la grosse blind
+    bool aJouer; // A Modifier... Corredsponds au premier joueur qui doit miser dans une manche
+    int miseMin; // Corresponds à la mise minimum de la table
+    int mise; //Corresponds à la mise de la manche en cour
+    int pot; // Corresponds au pot de la partie en cour
+    bool instanceAllIn; //Un joueur a all in dans la manche
+    vector<int> jAllIn; //Les joueurs ayant all in dans la manche
+    Paquet paquet;//Corresponds au paquet
+    vector<Carte> milieu; // Corresponds au flop, turn et river(board)
+    int** classementJoueurs; /* tableau a deux dimensions qui contiendra le classement des joueurs avec le nombre de points*/
+
+
+    
+ public:
+    //Constructeur,desctructeur
+
+    Table(int,int);
+    /**
+     *\fn Table(int descEnvoie,int descRecu,int max,int mise)
+     *@brief Le constructeur de Table 
+     *Permet de creer une table de jeu. Elle reçois les messages du serveur avec 'descRecu' et comunique avec le serveur avec 'descEnvoie'. La table a au maximum 'max' joueur et la mise de départ est de 'mise'
+    */
+    Table(int,int,int,int);
+    /**
+     *\fn ~Table()
+     *@brief Le desctructeur de la table
+     *Permet de détruire une table de jeu
+    */
+    ~Table();
+    
+    int getDescTable()const;
+    int getNbJoueur()const;
+    int getnbJMax()const;
+    int getMiseMin()const;
+    int getPot()const;
+    Carte* getMilieu()const;
+    Joueur getJoueur(int)const;
+    Spectateur getSpectateur(int)const;
+    ////////////                                           /////////////////////////
+    ///////////Ajout/Supression/Vetification de spectateur et joueur//////////////////////////
+    //////////                                           ///////////////////////////
+    /**
+     *\fn void addJoueur()
+     *@brief Ajoute un nouveau specatateur
+     *Permet d'ajouter un Spectateur dans la table des Spectateur
+     */
+    void addSpectateur(); //Ajoute un spectateur
+    /**
+     *\fn void addJoueur(Spectateur* s,char* sommePlace)
+     *@brief Ajoute un nouveau joueur
+     *Permet de transformer un spectateur en joueur. Le spectateur communique la place et la somme misé. Cette place et cette somme est stocké dans le buffer sommePlace.
+    */
+    void addJoueur(Spectateur*,char*); //Ajouter un joueur
+    /**
+     *\fn void removeSpectateur(int place)
+     *@brief Supprime un spectateur
+     *Permet de supprimer un spectateur en place 'place' dans le tableau des spectateurs
+    */
+    void removeSpectateur(int);//Suprime un spectateur
+    /**
+     *\fn void removeJoueur(int place)
+     *@brief Supprime un joueur
+     *Permet de supprimer un joueur en place 'place' dans le tableau des joueurs. Si le joueur est en cour de partie, il sera considéré comme inactif jusquà la fin de la partie ou jusqu'à une éventuel reconexion. A la suite de la partie, il sera supprimé de la table si il n'est pas reconnecté.  
+    */
+    void removeJoueur(int); //Suprime un joueur, si il est dans une parti, il sera suprimé à la fin de la partie
+    void removeJNoMoney(); //
+    void ajouterJoueur(char*);//Ajoute un joueur
+        /**
+     *\fn void verifierPresenceJoueur()
+     *@brief Verifie si un joueur est actif ou non.
+     *Permet de supprimer les joueurs non actif pour une nouvelle partie
+    */
+    void verifierPresenceJoueur();//Suprime les joueurs non actif et les joueurs voulant quitter la table à la fin d'une partie 
+
+    
+
+
+    /////////////////////////////////                            ////////////////////////////
+    ////////////////////////////////Methode de lancement de  jeu/////////////////////////////
+    ///////////////////////////////                            /////////////////////////
+    /**
+     *\fn void run()
+     *@brief Lance la table
+    */
+    void run();//Lance la table
+        /**
+     *\fn void lancerPartie()
+     *@brief Lance une partie de jeu
+    */
+    void lancerPartie();//Lance une partie de poker
+
+
+    /////////////                                                            ////////////////////////////////////////////////////
+    ////////////Methode permettant de préparer une nouvelle partie de poker //////////////////////////////////////////////////////////////
+    ///////////
+    /**
+     *\fn void preparerJoueur()
+     *@brief Prépare un joueur pour un lancement de partie
+     *Permet d erendre tous les joueurs coucher en non coucher, les joueurs All In en non All In
+    */
+    void preparerJoueur();//Prépare le joueur au démarache d'une partie
+        /**
+     *\fn void newDealer()
+     *@brief Cherche un nouveau dealer
+     *Permet de trouver le premier joueur à droite du dealer et de le rendre dealer à son tour
+    */
+    void newDealer();//Choix du nouveau dealer
+        /**
+     *\fn int smallBlind()
+     *@brief Cherche la petite blind
+     *Permet de déterminer qui sera la petite blind de la partie
+    */
+    int smallBlind();//Détermine la small blind
+        /**
+     *\fn int bigBlind()
+     *@brief Cherche la grosse blind 
+     *Permet de déterminer qui sera la grosse blind de la partie
+    */
+    int bigBlind(const int);//Détermine la big blind
+        /**
+     *\fn void distribuer()
+     *@brief Initialise le paquet et lance la méthode donnerCartes()
+     *Permet d'initialiser le paquet
+    */
+    void distribuer();//Initialise le paquet et lance la méthode donnerCartes()
+        /**
+     *\fn void donnerCartes()
+     *@brief Donne les cartes pour chaque joueur en jeu
+     *Permet de distribuer le jeu de chaque joueur pour cette partie
+    */
+    void donnerCartes();//Donne les cartes de chaque joueurs
+        /**
+     *\fn void joueurQuitteTable(int place)
+     *@brief Le Joueur sera suprimé de la table des Joueur pour une nouvelle partie 
+     *Permet qu'un utilisateur puisse qui son état de Joueur pour la prochaine partie qui sera lancé 
+    */
+    void joueurQuitteTable(int);//Un joueur veut quitter la table pour la prochaine partie 
+
+
+
+
+
+
+
+
+
+    //////////////////////                         //////////////////////////////////
+    /////////////////////Methode de poker en cours/////////////////////////////////// 
+    /////////////////////                        ///////////////////////////////////
+        /**
+     *\fn bool tourDeMise(int verificateur)
+     *@brief Méthode appelé pour chaque debut de manche jusquà la fin de la manche
+     *Permet de savoir quand une manche ou la partie se termine. Si le 'verificateur' est égal à 2 alors c'est la première manche de jeu. Si le 'verificateur' est égal à 1 alors c'est une manche différente de la première
+     *@return true Si il ne reste plus que un joueur en liste
+     *@return false Sinon
+    */
+    bool tourDeMise(int); //Lance la methode methodeMiser() pour chaque joueur en jeu
+        /**
+     *\fn void methodeMiser()
+     *@brief Attends que le joueur mise 
+     *Permet au joueur de miser. Si il est trop long, la mise correspondra à une parole ou à suivre 
+    */
+    void methodeMiser(); //Attends que le joueur correspondant mise
+        /**
+     *\fn int aMiser(const int previousMiseur)
+     *@brief Détermine le prochain joueur à miser
+     *Permet de connaître le nouveau joueur à miser. Il est déterminé par rapport au joueur ayant miser juste avant lui 'previousMiseur'
+     *@return placeMiseur Renvoie le joueur devant miser 
+    */
+    int aMiser(const int); //Cherche le prochain devant miser
+        /**
+     *\fn void newManche()
+     *@brief Prépare une nouvelle manche
+    */
+    void newManche(); //Prépare une nouvelle manche
+        /**
+     *\fn void poserFlop(int placeNext)
+     *@brief Pose le flop
+     *Permet de connaître le flop et lance la méthode envoyerBoard(placeNext,0)
+    */
+    void poserFlop(int); //Pose le flop
+        /**
+     *\fn void poserTurnRiver(int placeNext)
+     *@brief Pose la turn ou la river
+     *Permet de connaitre la turn ou la river et lance la methode envoyerBoard(placeNext,i). i est la position de cette derniere dans le tableau de carte
+    */
+    void poserTurnRiver(int); //Pose Lla turn ou la river
+            //Obtenir le nombre de point d'une main specifi� en parametre
+
+	 
+	/**
+	* \fn int ObtenirPointMain(carte main[])
+	* \brief Fonction qui calcul le nombre de points associés à une main de 5 cartes.
+	*
+	* \param main Main à traiter.
+	* \return le nombre de points correspondant à la main passé en paramètre.
+	*/
+        int ObtenirPointMain(Carte main[]);
+
+	//Evalue la main d'un joueur - combine avec EssayerMain
+	//deux methodes une qui va utilise EssayerMain3CartesMilieu et l'autre EssayerMain4CartesMilieu
+
+	/**
+	* \fn void EvaluerMain()
+	* \brief Fonction qui evalue la main des differents joueurs en essayant tte les combinaisons avec 3 cartes du boards et les deux cartes des joueurs.
+	*
+	*/
+	void EvaluerMain();
+
+	/**
+	* \fn void EvaluerMain2()
+	* \brief Fonction qui evalue la main des differents joueurs en essayant tte les combinaisons avec 4 cartes du boards et une des deux cartes de chaque joueur.
+	*/
+	void EvaluerMain2();
+	//Essayer la main avec les differentes combinaisons possible
+	
+	/**
+	* \fn int EssayerMain3CartesMilieu(int array[],int player)
+	* \brief Fonction qui essaye la main donnée.
+	*
+	* \param array tableau de valeur qui va nous permettre de choisir les differentes cartes du board
+	* \param player numero du joueur à traité
+	* \return le nombre de points correspondant à la main testé.
+	*/
+	
+	int EssayerMain3CartesMilieu(int[],int);
+
+	
+	/**
+	* \fn int EssayerMain3CartesMilieu(int array[],int player)
+	* \brief Fonction qui essaye la main donnée.
+	*
+	* \param array tableau de valeur qui va nous permettre de choisir les differentes cartes du board
+	* \param player numero du joueur à traité
+	* \return le nombre de points correspondant à la main testé.
+	*/
+	int EssayerMain4CartesMilieu(int array[],int player);
+	
+	//Utilisé pour test
+	void test();
+ 
+	//Evalue les main , remplis les jeux max et remplis finalement le classement des joueurs
+
+	
+	/**
+	* \fn void SetClassementJoueurs()
+	* \brief Fonction qui remplis le classement des joueurs en fonction de leurs nombre de points.
+	*/
+	void SetClassementJoueurs();
+
+	/**
+	* \fn void RemplissageJeuxMax()
+	* \brief Fonction qui remplis les jeuxs maximun de chaque joueurs en fonction des différentes cartes du boards.
+	*/
+	void RemplissageJeuxMax();
+
+
+
+	
+        /**
+     *\fn int distribuerLepot()
+     *@brief Distribue le pot
+     *Permet de distribuer le pot selon les gagnants et perdant. 
+     *@return Le reste du pot qu'on ne peut pas partager 
+     */
+	int distribuerLePot(); //Distribue le pot 
+        /**
+	 *\fn void emporteLePot()
+     *@brief Remporte la totalité du pot quand il ne reste que un seul joueur
+     */
+    void emporteLePot(); // Il reste que un joueur. Il remporte tous le pot
+        /**
+     *\fn void nettoieTable()
+     *@brief Réintialise la table.
+    */
+    void nettoieTable(); //nettoie la table
+
+  
+ 
+
+  
+
+  
+
+
+
+  /////////////////////                    /////////////////////////////////////////
+  ////////////////////Les méthodes de mise//////////////////////////////////////////
+  ///////////////////                    ///////////////////////////////////////////
+    /**
+     *\fn void joueurMise(char* miseChar,int place);
+     *@brief Le joueur fait une action de mise
+     *Permet de savoir si le joueur en position 'place' relance,suis ou fold selon les données stocké dans 'miseChar' et de faire une action selon.
+     */
+  void joueurMise(char*,int);//Le joueur relance,suis ou fold
+      /**
+     *\fn void joueurFold(int place)
+     *@brief Le joueur Fold
+     *Permet de mettre le joueur en coucher en position 'place'
+    */
+  void joueurFold(int); //Utilisé dans la méthode joueurs mise
+      /**
+     *\fn void joueurAllIn(int place)
+     *@brief Le joueur All In
+     *Permet de mettre en tapis en position 'place'
+    */
+  void joueurAllIn(int);//Joueur fait un all in
+  /**
+   *\fn void joueurMiseInactif(int place)
+   *@brief Applique une action si un joueur est inactif
+   *Si le joueur peut suivre, il suis sinon il se couche
+   */
+  
+  void joueurMiseInactif(int);//Le joueur est inactif et on choisie la mise pour lui
+  /**
+   *\fn int newPotSc()
+   *@return potSecondaire Retourne le pot parralèle d'un joueur all in
+   */
+  int newPotSc(); // Renvoie le pot parralèle d'un joueur all In
+
+
+
+
+
+  //////////////////////////             ///////////////////////////////////////////
+  /////////////////////////PARTIE RESEAU////////////////////////////////////////////
+  ////////////////////////             /////////////////////////////////////////////
+  /**
+   *\fn void messageSpec(char* donnée,int taille)
+   *@brief Envoie 'donnée' de taille 'taille' au spectateurs
+  */
+  void messageSpec(char*,int);//Envoie une donnée aux spectateurs et joueurs
+  
+  //Pour les conexion et deconextion partie reseau
+  /**
+   *\fn void convertirTableEnChar(Spectateur s)
+   *@brief Envoie les données de table au nouveau Spectateur 's'
+  */
+  void convertirTableEnChar(Spectateur*); //Envoie les élements d'une table à un nouveau spectateur pour une conexion 
+  /**
+   *\fn void envoieQuitteTable(int place)
+   *@brief Envoie que le joueur en position 'place' quitte la table
+  */
+  void envoieQuitteTable(int); //on préviens qu'un joueur quitte la table
+  
+  //Pour les reconexion en cours de jeu 
+  /**
+   *\fn void redonnerSonJeu(int place,Spectateur)
+   *@brief Un Joueur se reconnecte après une déconextion, il récupère son jeu
+  */
+  void redonnerSonJeu(int,Spectateur*);//Un joueur se connecte après déconexion, il recupere son jeu
+
+  //Pour transmettre les informations du jeu en reseau
+  /**
+   *\fn void lancerPartieReseau(int petiteBlind,int grosseBlind)
+   *@brief Préviens qu'une nouvelle partie est lancé
+   *On envoie la place du dealer, de la petiteBlind et de la grosseBlind
+  */
+  void lancerPartieReseau(int,int); // Previens qu'une partie va être lancé 
+  /**
+   *\fn void convertirJoueurEnCarte(int place)
+   *@brief Envoie les carte d'un joueur en position 'place'
+  */
+  void convertirJoueurEnCarte(int); //Envoie les carte d'un joueur
+  /**
+   *\fn void miserReseau(int place,int jeton)
+   *@brief Envoie la mise sur le reseau
+   *Permet d'envoyer la mise 'jeton' du joueur en position 'place' d'un joueur à tous les spéctateurs. 
+  */
+  void miserReseau(int,int); //Previens que le joueur vient de miser
+  
+  //Pour transmettre les cartes du milieu au joueur
+  /**
+   *\fn void envoyerBoard(int placeNext,int postionPremierCarteAEnvoyer)
+   *@brief Envoie les cartes du milieu et le prochain à miser 
+   *Permet d'envoyer les cartes qui sont au milieu à partir de la position 'positionPremierCarteAEnvoyer' et le prochain à miser en position 'placeNext'
+  */
+  void envoyerBoard(int,int);
+  
+  /**
+   *\fn void gagnantPerdantSomme(int place,int jeton)
+   *@brief Envoie la nouvelle somme du joueur et si il a gagné ou perdu
+  */
+  
+  void gagnantPerdantSomme(int);
+
+
+
+//////////////////////                               //////////////////////////////
+  ///////////////////Traitement des données envoyé par un client/////////////////// 
+  /////////////////////                               //////////////////////////////
+  /**
+   *\fn void actionSpec(int place)
+   *@brief Un spectateur en position 'place' a envoyé un message
+  */
+  void actionSpec(int);//Un spectateur a envoyer un paquet au serveur
+  /**
+   *\fn void actionSpecJoueur(int place)
+   *@brief Un Spectateur ou un joueur en position 'place' a envoyé un message
+  */
+  void actionSpecJoueur(int);//Un joueur ou un spectateur à envoyer un paquet au serveur  
+  /**
+   *\fn bool convertirCharDeJoueur(char* message, Spectateur* s, int& place, int jeton)
+   *@brief Un spectateur veut devenir joueur
+   *On recupere la place et les jeton de 'message' qui à été envoyé par le Spectateur 's'.
+   *@return true Si les jetons demandé sont pas trop élevé par rapport à l'argent de sa base de donnée et si la place n'est pas prise
+   *@return false Si la place est prise
+   *@return false Si la demande de jeton est supérieur à l'argent de la base d edonnée 
+  */
+  bool convertirCharDeJoueur(char*,Spectateur*,int&,int&); //Un spectateur demande de devenir joueur 
+
+
+ 
+  
+
+
+
+
+  /////////////////////////          ///////////////////////////////////////////////
+  ////////////////////////PARTIE BDD////////////////////////////////////////////////
+  ///////////////////////          /////////////////////////////////////////////////
+  /**
+   *\fn void modifBDD(int place)
+   *@brief Modifie le n-uplets de la base de donnée du joueur concerné. Il rajoute les jeton du joueur
+  */
+  void modifBDD(int);//Modifie la base de donnée selon les nouvelles données du client
+  /**
+   *\fn bool ajouterJetonTable(spectateur* s, int& jeton)
+   *@brief Recupere les jetons demandé dans le n-uplets du Spectateur 's' concerné
+   *Il vérifie si le nombre de jeton n'est pas trop élevé. Si c'est inférieur, il soustrais le nombre de jeton demandé de la base de donnée
+   *@return true Si la somme demandé n'est pas trop élévé
+   *@return false Sinon
+  */
+  bool ajouterJetonTable(Spectateur*,int&); //Verifie que le client a assez d'argent
+
+
+  ///////////////////////                                      ////////////////////////
+  //////////////////////PARTIE SERVEUR COMUNIQUANT PAR UN TUBE////////////////////////
+  /////////////////////                                      /////////////////////////
+  /**
+   *\fn void actionServeur()
+   *@brief Un message est arrivé dans le tube. On le traite
+   *Si le serveur à fermé le tube alors on attends que la partie se termine et on supprime la table   
+    */
+  void actionServeur(); //Un message est arrivé dans le tube. On doit le traiter
+
+  ///////////////////////      /////////////////////////////////////////////////////
+  //////////////////////ERREUR//////////////////////////////////////////////////////
+  /////////////////////      ///////////////////////////////////////////////////////
+  /**
+   *\fn void erreur()
+   *@brief Une erreur est arrivé. On supprime la table
+   */
+  void erreur();
+};
+	/**
+	* \fn static int comparerCartes(const void *cartes1,const void *cartes2)
+	* \brief Fonction qui compare deux cartes données qui va permettre d'utiliser qsort avec des cartes.
+	*
+	* \param cartes1 premier carte à comparer
+	* \param cartes2 deuxieme cartes à comparer
+	* \return la difference entre la valeur de la carte1 et la carte2.
+	*/
+static int comparerCartes(const void *cartes1, const void *cartes2);
+#endif

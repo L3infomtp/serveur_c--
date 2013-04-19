@@ -1,0 +1,10 @@
+Pensais à reconfigurer le serveur ou à crée votre base de données si vous utilisé le serveur.
+
+
+Le serveur attends que des clients se connecte. Quand un client se connecte, le client doit envoyer directement au serveur pseudo&mdp. Si il est dans la base de données alors le serveur envoie au client un message de la forme Pseudo&Argent&....&Pays. Il faut donc recuperer cette chaine et créer votre classe utilisateur avec toutes les données. Si le Pseudo et mdp ne corresponds pas, le serveur deconnecte le client et donc le recv du client doit être egal à 0. 
+
+Quand le client est connecter, il peut parler aux autres joueurs. Le serveur sait que c'est un message de tchat seulement si le message est de la forme TchatPseudo:Message. Le serveur renvoie tels quel à tous les clients connectés sur le serveur. 
+
+Si y a des fautes d'orthographes ou que vous ne comprenez pas se que j'écris alors allez vous faire prendre par un poney turc :D.
+
+Suite du serveur(cad demain): Le client envoie un message de la forme Modif+Pseud||motdp||email||....||count+lamodif. Et la modification sera fait dans la bdd.

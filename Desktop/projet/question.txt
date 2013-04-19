@@ -1,0 +1,13 @@
+Est se qu'on fait des serveurs concurent pour les tables?
+On transmet l'adresse du client pour les tables? tube entre processus
+Est ce que le serveur principal doit savoir sur quels tables sont chaque client? 
+Plusieurs cas à traité:
+	  Joueur quitte une table: Le joueur qui quitte ne fait que check jusqu'à la fin si il peut pas check, il fold. Les jetons sont converties en argent et additionner à son argent. On ferme le descripteur du joueur sur la table et on enleve le joueur de la table
+	  Spectateur quitte une table: On ferme son descripteur et on enleve le spectateur de la table.
+	  Client quitte le serveur: On envoie sur tous les tables qui joué qui vient de quitter le serveur.(on garde les tubes dans la classe client pour savoir ou il joue et peut être un cpt). Dans qu'il est sur une table, on le laisse. La dernier table doit prevenir au serveur que le client n'est plus en jeu alors le serveur modifie les données dans la base de données et suprime se client.  
+ 
+Donc on a tube de serveur vers table et de table vers serveur? 
+
+Diviser le travail, cad une personne qui s'occupe des tables et l'autre du serveur principal. Comme sa on auras des teste plus facil pour les personnes qui s'occupe des utilisateurs. 
+Voir pour la base de donné et son organisation
+Refléchir au protocole, c'est à dire l'ut

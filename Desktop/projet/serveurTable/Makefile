@@ -1,0 +1,24 @@
+table: sock/sock.o sock/sockdist.o Table.o main.o elementJeu/Carte.o elementJeu/Joueur.o elementJeu/Paquet.o elementJeu/Spectateur.o
+	g++ -o table -L/auto_home/jlagniez/Desktop/projet/mysql5/lib/mysql -lmysqlclient sock/sock.o sock/sockdist.o Table.o main.o elementJeu/Carte.o elementJeu/Joueur.o elementJeu/Paquet.o elementJeu/Spectateur.o
+
+sock.o: sock/sock.cc
+	g++ -o sock.o -c sock/sock.cc
+
+sockdist.o: sock/sockdist.cc
+	g++ -o sockdist.o -c sockdist.cc
+
+Carte.o: elementJeu/Carte.cpp
+	g++ -o Carte.o -c elementJeu/Carte.cpp
+
+Paquet.o: elementJeu/Paquet.cpp
+	g++ -o Paquet.o -c elementJeu/Paquet.cpp
+
+Spectateur.o: elementJeu/Spectateur.cpp
+	g++ -o Spectateur.o -c elementJeu/Spectateur.cpp
+
+Joueur.o: elementJeu/Joueur.cpp
+	g++ -o Joueur.o -c elementJeu/Joueur.cpp
+
+main.o: main.cc
+	g++ -o main.o -c main.cc
+

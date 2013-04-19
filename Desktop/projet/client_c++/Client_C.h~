@@ -1,0 +1,19 @@
+#ifndef CLIENT_C++_H
+#define CLIENT_C++_H
+#include <iostream>
+#include "sock/sock.h"
+using namespace std;
+
+Class Client_C{
+ private:
+  Sock brPri;
+  int descBrPri;
+  
+  int descLectMax;
+
+  fd_set desc_en_lect;
+
+ public:
+  Client_C(char*);
+};
+#endif

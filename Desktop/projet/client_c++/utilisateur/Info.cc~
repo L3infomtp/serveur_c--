@@ -1,0 +1,9 @@
+#include <iostream>
+#include <string>
+#include "Info.h"
+using namespace std;
+
+Info::Info():nom(""){}
+Info::Info(const string name):nom(name){}
+string Info::getNom()const{return nom;}
+void Info::setNom(const string name){nom=name;}

@@ -1,0 +1,37 @@
+#ifndef TABLE_H
+#define TABLE_H
+#include <iostream>
+#include <string>
+using namespace std;
+
+class Table{
+ private:
+  int port;
+  int descEnvoie;
+  int descRecu;
+
+  string nomTable;
+  int nbJ;
+  int nbJMax;
+  float miseDep;
+ public:
+  Table(int,int,int,string,int,float);
+  
+  int getDescEnvoie()const;
+
+  int getDescRecu()const;
+  int getNbJ()const;
+  int getNbJMax()const;
+  string getNomTable()const;
+  float getMiseDep()const;
+  int getPort()const;
+  
+  void setDescEnvoie(const int);
+  void setDescRecu(const int);
+  void setNomTable(const string);
+  void setMiseDep(const float);
+  
+  void augmenterNbJ();
+  void diminuerNbJ();
+};
+#endif

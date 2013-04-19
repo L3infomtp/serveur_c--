@@ -1,0 +1,10 @@
+mysqld_multi log file version 2.15; run: mar fév  7 10:18:26 2006
+
+Starting MySQL servers
+
+sh: /usr/local/mysql5/bin/safe_mysqld: Aucun fichier ou répertoire de ce type
+mysqld_multi log file version 2.15; run: mar fév  7 10:32:15 2006
+
+Starting MySQL servers
+
+A mysqld process already exists

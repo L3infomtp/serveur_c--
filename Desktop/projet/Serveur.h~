@@ -1,0 +1,40 @@
+#ifndef SERVEUR_H
+#define SERVEUR_H
+#include <iostream>
+#include <vector>
+//#include<string.h>
+#include "ClientVuServeur/Client.h"
+#include "sock/sock.h"
+using namespace std;
+class Serveur{
+ private:
+  Sock brPub;
+  int descBrPub;
+  
+  int descLectMax;
+  fd_set desc_en_lect;
+  
+  vector<Client*> tabClient;
+  int tailleVecteur;
+  
+  //int nombreDeTable;
+  //vector<Table> tabTable;
+  
+ public:
+  Serveur();
+
+  void lanceServeur();
+  void accepterClient();
+  void erreur();
+
+  void actionClient(int);
+  void decoClient(int);
+  void msgClient(char*);
+  void modifClient(char*,Client*);
+  
+  void convertionPseudoMdpClient(char*,string&, string&);
+  void convertionClientChar(char* buffer,Client* cl);
+
+  Client* connexionClientBDD(const int,const string,const string);
+};
+#endif

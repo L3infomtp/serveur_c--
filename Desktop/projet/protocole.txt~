@@ -1,0 +1,65 @@
+////Nouveau protocole
+Message envoyé de l'utilisateur à la table
+On se connecte à la table: pseudo
+On veut devenir joueur: place&argent Attention, penser à multiplier argent par 100 pour avoir le centième d'argent
+
+
+Message envoyé de la table à l'utilisateur
+Un utilisateur se connecte: NewJo
+
+
+Les |...| representent les types des différents messages. A prendre en compte pour chaque action.
+
+ Serveur/Client
+
+-Client se connecte
+	-Envoyer les tables de jeu |EnvTJ| + avec l'identifiant de la table
+	-Envoyer son profil |EnvPr|
+-Client se connecte après une deconexion soudaine
+	Si il n'est connecté à plus aucune table 
+	   -revenir à une connexion classique
+	Sinon
+	-Connexion classique
+	-Le reconnecter sur les tables de jeux |recoT| 
+Client se connecte alors qu'il est deja connecté
+       -Envoyer l'erreur de sa double connexion |dejaC|
+Client se connecte alors que son nom de profil ou mot de passe est faux |errPM|
+-Client parle dans le chat
+	-Recuperer message du client |Tchat|
+	-Envoyer message à tous les autres clients de la forme |Tchat|
+-Client veut modifier son profil
+	-Client change pseudo |modiP|
+-Client rafréchie les tables
+	-Le client envoie un message avec comme entete |RafTa|
+	-Le serveur envoie au client les tables de jeu |EnvTJ| + avec l'idendifiant de la table 
+-Client/Serveur quitte 
+	-Ils sont traités avec le retour 0 au recv
+-Client veut rejoindre une table
+	-Il a choisie sa table de jeu |coTab| + identifiant de la table sur cinq caractere pour savoir sur quelle table il se connecte.
+
+
+Tables/Client
+
+-Joueur/Spec parle dans le chat
+	-Recuperer message du client |Tchat|
+	-Envoyer message à tous les autres clients de la forme |Tchat|
+	
+-Spec veut rejoindre la table
+      -Le client envoie un message avec comme entête |RejTa| + la position sur sa table
+      -Le serveur envoie pour chaque spec/Joueur la place et le nom du nouveau joueur
+
+-Joueur joue
+	-Il passe son tour |Foldd|
+	-Il suis la mise |Check|
+	-Il mise |Miser|
+
+-Les deconnection des tables sont aussi traités avec un retour 0 du recv
+
+-Serveur envoie les cartes du milieu
+	 -Pour chaque Joueur/Spec envoyer les cartes
+	       -Si c'est le flop |Flopp|+ suivi des trois cartes
+	       -Si il donne une new carte |Turne|+ suivi de la carte
+	       -Si il donne une new carte |River|+ suivi de la carte 
+
+-Debut d'une manche
+       -Chaque joueur recçois ses cartes de la forme |Carte|+ suivi des deux cartes 

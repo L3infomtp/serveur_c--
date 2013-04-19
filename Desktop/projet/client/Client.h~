@@ -1,0 +1,17 @@
+#ifndef CLIENT_H
+#define CLIENT_H
+
+class Client{
+ private:
+  int descClient;
+  string nom;
+  float argent;
+
+ public:
+  Client();
+  Client(int);
+  Client(int,string,float);
+  
+  int getDescClient()const;
+};
+#endif

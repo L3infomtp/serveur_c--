@@ -1,0 +1,462 @@
+#include <iostream>
+#include <stdio.h>
+#include <sys/socket.h>
+#include <sys/types.h>
+#include <pwd.h>
+#include <unistd.h>
+#include <string.h>
+#include <sstream>
+#include <cstdlib>
+#include <cstring>
+//#include "mysql/mysql.h"
+#include "/usr/local/mysql5/include/mysql/mysql.h"
+#include "sock/sock.h"
+#include "sock/sockdist.h"
+#include "Serveur.h"
+//export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/mysql5/lib/mysql/
+
+//#include "Table.h"
+#include "ClientVuServeur/Client.h"
+
+//#include <vector>
+using namespace std;
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////Constructeur/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+Serveur::Serveur(){
+  //Creer la boite reseau public avec numero de port=21345 a 
+  brPub=Sock(SOCK_STREAM, (short)21345,0);
+  
+  //Creer le descripteur à surveiller en lecture
+  if(brPub.good()) descBrPub=brPub.getsDesc();
+  else
+    {
+      cout<<"Problème de l'init du descripteur de la boite reseau public"<<endl;
+      exit(1);
+    }
+  descLectMax=descBrPub;
+  //Longeur file d'attente
+  if(listen(descBrPub,100)==-1)
+    {
+      cout<<"Liste d'attende mal crée"<<endl;
+      exit(1);
+    }
+  
+  tabClient=vector<Client*>();
+  tailleVecteur=0;
+  
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+////////////////get,set et is///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+//ICI!!!
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////Methode tournant tous le temps/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// 
+void Serveur::lanceServeur(){
+  string sortieBoucle="";
+  int cpt;
+  cout<<"Bienvenu"<<endl;
+  while(sortieBoucle != "sortie"){
+    //Initialise à faux l'ensemble de lecture à surveiller et positionne à vrai les descripteurs à surveiller
+    FD_ZERO(&desc_en_lect);
+    FD_SET(descBrPub,&desc_en_lect);
+    FD_SET(0,&desc_en_lect);
+    for(cpt=0;cpt<tailleVecteur;cpt++){
+      FD_SET(tabClient[cpt]->getDescClient(),&desc_en_lect);
+    }
+    int retourSelect=select(descLectMax+1, &desc_en_lect,NULL,NULL,NULL);
+    //Si erreur au select 
+    if(retourSelect==-1){
+      erreur();
+    }
+    else{
+      //Si c'est le descripteur d'écriture qui à changé
+      if(FD_ISSET(0,&desc_en_lect)){
+	string msg;
+	cin>>msg;
+	if(msg=="sortie"){
+	  while(!tabClient.empty()){
+	    close(tabClient.back()->getDescClient());
+	    delete tabClient.back();
+	    tabClient.pop_back();
+	  }
+	  close(descBrPub);
+	  sortieBoucle=msg;
+	}
+      }
+ 
+      else{
+	if(FD_ISSET(descBrPub,&desc_en_lect)){
+	  accepterClient();
+	}
+	else{
+	  int parcoursClient=0;
+	  bool sortieParcours=true;
+	  while(sortieParcours && parcoursClient!=tailleVecteur){
+	    if(FD_ISSET(tabClient[parcoursClient]->getDescClient(),&desc_en_lect))
+	      {
+		actionClient(parcoursClient);
+		sortieParcours=false;
+	      }
+	    else
+	      {
+		parcoursClient++;
+	      }
+	  }
+	}
+      }
+    }
+  }
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////Methode//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Serveur::accepterClient(){
+  //On accepte le nouveau client et on définie son descripteur de sa boite reseau de circuit virtuel
+  struct sockaddr_in brCV;
+  socklen_t lgbrCV=sizeof(struct sockaddr_in); 
+  int descBrCv = accept(descBrPub,(struct sockaddr *)&brCV, &lgbrCV);
+  if(descBrCv==-1){
+    cout<<"N'a pas accepté le client"<<endl;
+  }
+  else{
+    cout<<"Un client veut se connecter"<<endl;
+    char pseudoMdp[52]="";
+    int retourConexion=recv(descBrCv,pseudoMdp,52,0);
+    if(retourConexion==0){
+      cout<<"Probleme de l'envoie du client"<<endl;
+      close(descBrPub);
+    }
+    else{
+      string pseudo;
+      string mdp;
+      convertionPseudoMdpClient(pseudoMdp,pseudo,mdp);
+      Client* cl=connexionClientBDD(descBrCv,pseudo,mdp);
+      if(cl != NULL){
+	cout<<"Nouveau client"<<endl;
+	if(descLectMax<descBrCv){
+	  descLectMax=descBrCv;
+	}
+	//Client* cl=new Client(descBrCv,"Azerty",100);
+	tabClient.push_back(cl);
+	tailleVecteur++;
+	char buffer[300]="";
+	convertionClientChar(buffer,cl);
+	cout<<buffer<<endl;
+	int envoie=send(cl->getDescClient(),buffer,300,0);
+	if(envoie==-1){
+	  cout<<"Erreur au send quand on a accepter un client"<<endl;
+	  erreur();
+	}
+      }
+      else{
+	cout<<"oh le noob ce client, il a fait une erreur sur ces id ah ah!"<<endl;
+	close(descBrCv);
+      }
+    }
+  }
+}
+
+
+void Serveur::erreur(){
+  cout<<"Erreur"<<endl;
+  while(!tabClient.empty()){
+    close(tabClient.back()->getDescClient());
+    delete tabClient.back();
+    tabClient.pop_back();
+  }
+  close(descBrPub);
+  exit(1);  
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/////////////Action d'un client/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Serveur::actionClient(int placeVecteur){
+  char recuClient[256]="";
+  int taille=recv(tabClient[placeVecteur]->getDescClient(),recuClient,256,0);
+  if(taille==0)
+    {
+      ///////Modifier selon les tables//////
+      decoClient(placeVecteur);
+      
+      //////////////////////////////////////
+    
+    }
+  else{
+    cout<<recuClient<<endl;
+    if(recuClient[0]=='M' && recuClient[1]=='o' && recuClient[2]=='d' && recuClient[3]=='i' && recuClient[4]=='f'){
+      modifClient(recuClient+5,tabClient[placeVecteur]);
+    }
+    else{
+      if(recuClient[0]=='T' && recuClient[1]=='c' && recuClient[2]=='h' && recuClient[3]=='a' && recuClient[4]=='t'){
+	msgClient(recuClient);
+      }
+    }
+  }
+  
+  //1-Soit il veut juste voir son profil
+  //2-Soit il veut rejoindre une table
+  //3-Soit il parle dans le chan
+  //4-Soit il quitte le jeu
+  //5-Modif son profil
+}
+
+void Serveur::decoClient(int placeVecteur){
+    ///////Modifier selon les tables//////
+      cout<<tabClient[placeVecteur]->getNom()<<" est deconnecté"<<endl;
+      close(tabClient[placeVecteur]->getDescClient());
+      delete tabClient[placeVecteur];
+      tabClient.erase(tabClient.begin()+placeVecteur);
+      tailleVecteur--;
+      //////////////////////////////////////
+  }
+
+void Serveur::msgClient(char* tchat){
+   cout<<tchat<<endl;
+   for(int i=0;i<tailleVecteur;i++){
+     int envoi=send(tabClient[i]->getDescClient(),tchat,255,0);
+   }
+ }   
+ 
+
+/**********************************************************************************************************************************************************************************************************************************************/
+
+
+/////////////////Action sur les bases de données////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+Client* Serveur::connexionClientBDD(const int descCli,const string pseudo,const string mdp){
+  Client* cl=NULL;
+  bool joueurExiste=false;
+  char test='a';
+  MYSQL utilisateur;
+  mysql_init(&utilisateur);
+  const char* option="option";
+  mysql_options(&utilisateur,MYSQL_READ_DEFAULT_GROUP,option);
+  /*Chez jm
+    if(mysql_real_connect(&utilisateur,"localhost","root","azertySQL","pokerL3",0,NULL,0)){*/ 
+  //Chez la fac
+  if(mysql_real_connect(&utilisateur,"venus","flucia","flucia","flucia",0,NULL,0)){
+    mysql_query(&utilisateur,"SELECT * FROM infoclients");
+    
+    MYSQL_RES * result =NULL;
+    MYSQL_ROW row;
+
+    unsigned int i=0;
+    unsigned int nb_champs=0;
+
+    result = mysql_store_result(&utilisateur);
+    
+    nb_champs=mysql_num_fields(result);
+
+    while(!joueurExiste && (row = mysql_fetch_row(result))){
+
+      if(row[0] == pseudo && row[1]==mdp){
+	joueurExiste=true;
+      }
+    }
+    if(joueurExiste){
+      stringstream ss(row[11]);
+      float argent=0;
+      ss >> argent;
+      cl= new Client(descCli,pseudo,argent,row[2],row[3],row[4],row[5],row[6],row[7],row[8],row[9],row[10]);
+    }
+    mysql_close(&utilisateur);
+  }
+  else{
+    cout<<"Erreur de la connexion à la base de donnée"<<endl;
+    }
+  
+  return cl;
+}
+
+void Serveur::modifClient(char* modification,Client* cl){
+  cout<<"Modification de donnée"<<endl;
+  int cpt=0;
+  char entierAConvertir[2];
+  while(modification[cpt]!='&'){
+    entierAConvertir[cpt]=modification[cpt];
+    cpt++;
+  }
+  int colonne=atoi(entierAConvertir);
+  cout<<colonne<<endl;
+  MYSQL utilisateur;
+  mysql_init(&utilisateur);
+  const char* option="option";
+  mysql_options(&utilisateur,MYSQL_READ_DEFAULT_GROUP,option);
+  if(mysql_real_connect(&utilisateur,"venus","flucia","flucia","flucia",0,NULL,0)){
+    
+    switch(colonne){
+    case 2:
+      {
+      /////Penser à encrypter merci....
+	string requete="update infoclients set Password='"+string(modification+cpt+1)+"' where Username='"+cl->getNom()+"'";
+	mysql_query(&utilisateur,requete.c_str());
+	break;
+      }
+    case 3:
+      {
+	string requete="update infoclients set Email='"+string(modification+cpt+1)+"' where Username='"+cl->getNom()+"'";
+	mysql_query(&utilisateur,requete.c_str());
+	break;
+      }
+    case 4:
+      {
+	string requete="update infoclients set DOB='"+string(modification+cpt+1)+"' where Username='"+cl->getNom()+"'";
+	mysql_query(&utilisateur,requete.c_str());
+	break;
+      }
+    case 5:
+      {
+	string requete="update infoclients set Gender='"+string(modification+cpt+1)+"' where Username='"+cl->getNom()+"'";
+	mysql_query(&utilisateur,requete.c_str());
+	break;
+      }
+    case 6:
+      {
+	string requete="update infoclients set LName ='"+string(modification+cpt+1)+"' where Username='"+cl->getNom()+"'";
+	mysql_query(&utilisateur,requete.c_str());
+	break;
+      }
+    case 7:
+      {
+	string requete="update infoclients set FName='"+string(modification+cpt+1)+"' where Username='"+cl->getNom()+"'";
+	mysql_query(&utilisateur,requete.c_str());
+	break;
+      }
+    case 8:
+      {
+	cout<<"Modification de l'adresse"<<endl;
+	string requete="update infoclients set Adress='"+string(modification+cpt+1)+"' where Username='"+cl->getNom()+"'";
+	mysql_query(&utilisateur,requete.c_str());
+	break;
+      }
+    case 9:
+      {
+	string requete="update infoclients set City='"+string(modification+cpt+1)+"' where Username='"+cl->getNom()+"'";
+	mysql_query(&utilisateur,requete.c_str());
+	break;
+      }
+    case 10:
+      {
+	string requete="update infoclients set ZipCode="+string(modification+cpt+1)+" where Username='"+cl->getNom()+"'";
+	mysql_query(&utilisateur,requete.c_str());
+	break;
+      }
+  case 11:
+      {
+	string requete="update infoclients set Country='"+string(modification+cpt+1)+"' where Username='"+cl->getNom()+"'";
+	mysql_query(&utilisateur,requete.c_str());
+	break;
+      }
+    default:
+      {
+	cout<<"Erreur quelque part dans la modification. Bonnne chance!"<<endl;
+      }
+    }
+    mysql_close(&utilisateur);
+    }
+  else{
+    cout<<"Erreur de la connexion à la base de donnée"<<endl;
+  }
+}
+
+
+/**********************************************************************************************************************************************************************************************************************************************/
+
+/////////////////////Methode de convertion des types////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+void Serveur::convertionPseudoMdpClient(char* pseudoMdp,string& pseudo, string& mdp){
+  unsigned int i=0;
+  stringstream pseudoAConvertir;
+  stringstream mdpAConvertir;
+  while(pseudoMdp[i]!='&'){
+    i++;
+  }
+  char pseudoChar[20]="";
+  char mdpChar[30]="";
+  strncpy(pseudoChar,pseudoMdp,i);
+  pseudoAConvertir<<pseudoChar;
+  pseudoAConvertir>>pseudo;
+  strncpy(mdpChar,pseudoMdp+i+1,50);
+  mdpAConvertir<<mdpChar;
+  mdpAConvertir>>mdp;
+}
+
+void Serveur::convertionClientChar(char* buffer,Client* cl){
+  int taille=0;
+  string pseudo=cl->getNom(); int taillePseudo=pseudo.size();
+  strncpy(buffer,pseudo.c_str(),taillePseudo);
+  taille+=taillePseudo;
+  buffer[taille]='&';
+  taille++;
+  
+  char money[64]=""; sprintf(money,"%f",cl->getArgent());
+  int tailleArgent=strlen(money);
+  strncpy(buffer+taille,money,tailleArgent);
+  taille+=tailleArgent;
+  buffer[taille]='&';
+  taille++;
+  
+  string mail=cl->getEmail(); int tailleMail=mail.size();
+  strncpy(buffer+taille,mail.c_str(),tailleMail);
+  taille+=tailleMail;
+  buffer[taille]='&';
+  taille++;
+
+  string date=cl->getDOB(); int tailleDate=date.size();
+  strncpy(buffer+taille,date.c_str(),tailleDate);
+  taille+=tailleDate;
+  buffer[taille]='&';
+  taille++;
+
+  string genre=cl->getGender();int tailleGenre=genre.size();
+  strncpy(buffer+taille,genre.c_str(),tailleGenre);
+  taille+=tailleGenre;
+  buffer[taille]='&';
+  taille++;
+
+  string nom=cl->getLName();int tailleNom=nom.size();
+  strncpy(buffer+taille,nom.c_str(),tailleNom);
+  taille+=tailleNom;
+  buffer[taille]='&';
+  taille++;
+  
+  string prenom=cl->getFName();int taillePrenom=prenom.size();
+  strncpy(buffer+taille,prenom.c_str(),taillePrenom);
+  taille+=taillePrenom;
+  buffer[taille]='&';
+  taille++;
+
+  string adr=cl->getAdress();int tailleAdr=adr.size();
+  strncpy(buffer+taille,adr.c_str(),tailleAdr);
+  taille+=tailleAdr;
+  buffer[taille]='&';
+  taille++;
+
+  string ville=cl->getCity();int tailleVille=ville.size();
+  strncpy(buffer+taille,ville.c_str(),tailleVille);
+  taille+=tailleVille;
+  buffer[taille]='&';
+  taille++;
+
+  string code=cl->getZipCode();int tailleCode=code.size();
+  strncpy(buffer+taille,code.c_str(),tailleCode);
+  taille+=tailleCode;
+  buffer[taille]='&';
+  taille++;
+
+  string pays=cl->getCountry();int taillePays=pays.size();
+  strncpy(buffer+taille,pays.c_str(),taillePays);
+  taille+=taillePays;
+  buffer[taille]='\0';
+}
+/**********************************************************************************************************************************************************************************************************************************************/

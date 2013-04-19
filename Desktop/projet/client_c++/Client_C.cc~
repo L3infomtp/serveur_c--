@@ -1,0 +1,32 @@
+#include <iostream>
+#include <sys/socket.h>
+#include <sys/types.h>
+#include <pwd.h>
+#include <unistd.h>
+#include <string.h>
+#include "sock/sock.h"
+#include "sock/sockdist.h"
+#include "Client_C.h"
+
+using namespace std;
+
+Client_C::Client_C(char* nomOrdi){
+  //Creer la boite reseau privé
+  brPri=Sock(SOCK_STREAM,0);
+  //Creer le descripteur de la boite reseau privé 
+  int descbreCli;
+  if(breCli.good()) descbreCli=brPri.getsDesc();
+  else{
+    cout<<"pb BR privé"<<endl;
+    exit(1);
+  }
+  //Creation de la boite reseau du circuit virtuel et de sa longeur 
+  SockDist brPub(nomOrdi, (short)21345);
+  
+  //Se connecte au serveur
+  int erlude=connect(descbreCli,(struct sockaddr *)adrBrPub,lgAdrBrPub);
+  if(erlude==-1){
+    cout<<"Conexion ne marche pas "<<endl;
+    exit(1);
+  }
+}

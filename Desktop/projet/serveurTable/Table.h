@@ -92,14 +92,17 @@ class Table{
      *\fn void addJoueur(Spectateur* s,char* sommePlace)
      *@brief Ajoute un nouveau joueur
      *Permet de transformer un spectateur en joueur. Le spectateur communique la place et la somme misé. Cette place et cette somme est stocké dans le buffer sommePlace.
+     *\param s Le Specateur voulant devenir Joueur
+     *\param sommePlace La chaîne de caractère contenant la place et la somme voulu par le Spectateur
     */
     void addJoueur(Spectateur*,char*); //Ajouter un joueur
     /**
      *\fn void removeSpectateur(int place)
      *@brief Supprime un spectateur
      *Permet de supprimer un spectateur en place 'place' dans le tableau des spectateurs
+     *\param place La position dans le tableau des Spectateurs de l'utilisateur à supprimer 
     */
-    void removeSpectateur(int);//Suprime un spectateur
+    void removeSpectateur(int);//Supprime un spectateur
     /**
      *\fn void removeJoueur(int place)
      *@brief Supprime un joueur
@@ -196,6 +199,7 @@ class Table{
      *Permet de savoir quand une manche ou la partie se termine. Si le 'verificateur' est égal à 2 alors c'est la première manche de jeu. Si le 'verificateur' est égal à 1 alors c'est une manche différente de la première
      *@return true Si il ne reste plus que un joueur en liste
      *@return false Sinon
+     *\param vetificateur Permet de savoir dans quel état est la partie
     */
     bool tourDeMise(int); //Lance la methode methodeMiser() pour chaque joueur en jeu
         /**
@@ -205,10 +209,11 @@ class Table{
     */
     void methodeMiser(); //Attends que le joueur correspondant mise
         /**
-     *\fn int aMiser(const int previousMiseur)
+     *\fn int aMiser(const int ancienMiseur)
      *@brief Détermine le prochain joueur à miser
-     *Permet de connaître le nouveau joueur à miser. Il est déterminé par rapport au joueur ayant miser juste avant lui 'previousMiseur'
-     *@return placeMiseur Renvoie le joueur devant miser 
+     *Permet de connaître le nouveau joueur à miser. Il est déterminé par rapport au joueur ayant miser juste avant lui 'ancienMiseur'
+     *\param ancienMiseur On cherche le premier joueur après lui
+     *@return placeMiseur Renvoie le joueur devant miser et -1 si il n'y a pas de joueur 
     */
     int aMiser(const int); //Cherche le prochain devant miser
         /**
@@ -223,10 +228,11 @@ class Table{
     */
     void poserFlop(int); //Pose le flop
         /**
-     *\fn void poserTurnRiver(int placeNext)
+     *\fn void poserTurnRiver(int placeSuivant)
      *@brief Pose la turn ou la river
-     *Permet de connaitre la turn ou la river et lance la methode envoyerBoard(placeNext,i). i est la position de cette derniere dans le tableau de carte
-    */
+     *Permet de connaitre la turn ou la river et lance la methode envoyerBoard(placeSuivant,i). i est la position de cette derniere dans le tableau de carte
+     *\param placeSuivant Est le prochain joueur devant miser
+     */
     void poserTurnRiver(int); //Pose Lla turn ou la river
             //Obtenir le nombre de point d'une main specifi� en parametre
 
@@ -334,24 +340,29 @@ class Table{
      *\fn void joueurMise(char* miseChar,int place);
      *@brief Le joueur fait une action de mise
      *Permet de savoir si le joueur en position 'place' relance,suis ou fold selon les données stocké dans 'miseChar' et de faire une action selon.
-     */
+     *\param miseChar La chaine ne caractère représentant la mise du joueur
+     *\param place La place du joueur ayant misé
+    */
   void joueurMise(char*,int);//Le joueur relance,suis ou fold
       /**
      *\fn void joueurFold(int place)
      *@brief Le joueur Fold
      *Permet de mettre le joueur en coucher en position 'place'
+     *\param place La place du joueur du joueur se couchant
     */
   void joueurFold(int); //Utilisé dans la méthode joueurs mise
       /**
      *\fn void joueurAllIn(int place)
      *@brief Le joueur All In
      *Permet de mettre en tapis en position 'place'
+     *\param place La place du joueur fesant un tapis
     */
   void joueurAllIn(int);//Joueur fait un all in
   /**
    *\fn void joueurMiseInactif(int place)
    *@brief Applique une action si un joueur est inactif
    *Si le joueur peut suivre, il suis sinon il se couche
+   *\param place La place du joueur inactif
    */
   
   void joueurMiseInactif(int);//Le joueur est inactif et on choisie la mise pour lui
@@ -371,6 +382,8 @@ class Table{
   /**
    *\fn void messageSpec(char* donnée,int taille)
    *@brief Envoie 'donnée' de taille 'taille' au spectateurs
+   *\param donnée Message envoyé à tous les utilisateurs
+   *\param taille La taille en octet du message
   */
   void messageSpec(char*,int);//Envoie une donnée aux spectateurs et joueurs
   
@@ -378,11 +391,13 @@ class Table{
   /**
    *\fn void convertirTableEnChar(Spectateur s)
    *@brief Envoie les données de table au nouveau Spectateur 's'
+   *\param s On envoie toute les données à cet utilisateur
   */
   void convertirTableEnChar(Spectateur*); //Envoie les élements d'une table à un nouveau spectateur pour une conexion 
   /**
    *\fn void envoieQuitteTable(int place)
    *@brief Envoie que le joueur en position 'place' quitte la table
+   *\param place La position du joueur quittant la table 
   */
   void envoieQuitteTable(int); //on préviens qu'un joueur quitte la table
   
@@ -390,6 +405,8 @@ class Table{
   /**
    *\fn void redonnerSonJeu(int place,Spectateur)
    *@brief Un Joueur se reconnecte après une déconextion, il récupère son jeu
+   *\param place Position dans le tableau des joueurs du joueur se reconnectant à la table
+   *\param s Le Spectateur redevenant Joueur
   */
   void redonnerSonJeu(int,Spectateur*);//Un joueur se connecte après déconexion, il recupere son jeu
 

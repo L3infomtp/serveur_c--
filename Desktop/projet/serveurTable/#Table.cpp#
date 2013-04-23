@@ -26,6 +26,7 @@
 #define CITY 9
 #define ZIPCODE 10
 #define COUNTRY 11
+#define NB_CHAISE 10
 /////////////////////////////////////Variable globale//////////////////////////////
 const char separateur[2]="&";
 /****************************************************************************************/
@@ -51,12 +52,12 @@ Table::Table(int maxJ, int miseDep){
   nbJAllIn=0;
   prochainAMiser=0;
   dernierAMiser=0;
-  joueurs=new Joueur*[nbJMax];
-  for(int i=0;i<nbJMax;i++){
+  joueurs=new Joueur*[NB_CHAISE];
+  for(int i=0;i<NB_CHAISE;i++){
     joueurs[i]=NULL;
   }
-  actif=new bool[nbJMax];
-  for(int i=0;i<nbJMax;i++){
+  actif=new bool[NB_CHAISE];
+  for(int i=0;i<NB_CHAISE;i++){
     actif[i]=false;
   }
   //Partie constructeur poker
@@ -99,12 +100,12 @@ Table::Table(int descE,int descR,int maxJ, int miseDep){
   nbJAllIn=0;
   prochainAMiser=0;
   dernierAMiser=0;
-  joueurs=new Joueur*[nbJMax];
-  for(int i=0;i<nbJMax;i++){
+  joueurs=new Joueur*[NB_CHAISE];
+  for(int i=0;i<NB_CHAISE;i++){
     joueurs[i]=NULL;
   }
-  actif=new bool[nbJMax];
-  for(int i=0;i<nbJMax;i++){
+  actif=new bool[NB_CHAISE];
+  for(int i=0;i<NB_CHAISE;i++){
     actif[i]=false;
   }
   //Partie constructeur poker
@@ -117,15 +118,15 @@ Table::Table(int descE,int descR,int maxJ, int miseDep){
   mise = miseMin;
   pot = 0;
   instanceAllIn=false;
-  classementJoueurs=new int*[nbJMax];
-  for(int i=0;i<nbJMax;i++){
+  classementJoueurs=new int*[NB_CHAISE];
+  for(int i=0;i<NB_CHAISE;i++){
     classementJoueurs[i]=new int[2];
   }
 
 }
 Table::~Table(){
   
-  for(int i=0;i<nbJMax;i++){
+  for(int i=0;i<NB_CHAISE;i++){
     if(joueurs[i]!=NULL){
       actif[i]=false;
       removeJoueur(i);
@@ -134,7 +135,7 @@ Table::~Table(){
   for(int i=0;i<spectacteurs.size();i++){
     removeSpectateur(i);
   }
-  for(int i=0;i<nbJMax;i++){
+  for(int i=0;i<NB_CHAISE;i++){
     delete[] classementJoueurs[i];
   }
   delete[] classementJoueurs;
@@ -150,7 +151,7 @@ void Table::addSpectateur(){
   socklen_t lgbrCV=sizeof(struct sockaddr_in);
   int descBrCv = accept(descTable,(struct sockaddr *)&brCV, &lgbrCV);
   if(descBrCv==-1)
-    cout<<"N'a pas acceptÔøΩe le client"<<endl;
+    cout<<"N'a pas acceptúÛıΩe le client"<<endl;
   else{
     char nom[52]="";
     int messCli = recv(descBrCv,nom,52,0);
@@ -163,7 +164,7 @@ void Table::addSpectateur(){
       spectacteurs.push_back(s);
       //Partie reseau
       convertirTableEnChar(s);
-      for(int i=0;i<nbJMax;i++){
+      for(int i=0;i<NB_CHAISE;i++){
 	if(joueurs[i]!=NULL && actif[i]==false && joueurs[i]->getNom()==s->getNom()){
 	  redonnerSonJeu(i,s);
 	}
@@ -227,8 +228,8 @@ void Table::addJoueur(Spectateur* s, char* aConvertir){
 }
 void Table::removeSpectateur(int placeSpec){
   int specDesc=spectacteurs[placeSpec]->getDesc();
-  for(int i=0;i<nbJMax;i++){
-    //Impl√©menter la m√©thode getDesc de la classe joueur!!!!!!!
+  for(int i=0;i<NB_CHAISE;i++){
+    //ImplÅÈmenter la mÅÈthode getDesc de la classe joueur!!!!!!!
     cout<<"C'est un joueur"<<endl;
     if(joueurs[i]!=NULL && specDesc==joueurs[i]->getDesc()){
       cout<<"Le joueur est parti"<<endl;
@@ -261,24 +262,24 @@ void Table::removeJoueur(int placeJ){
 	int place=placeJ+1;
 	do{
 	  if(joueurs[place]!=NULL){
-	    cout<<"Affichage dealer apr√®s supression de l'ancien dealer: "<<place<<endl;
+	    cout<<"Affichage dealer aprÅËs supression de l'ancien dealer: "<<place<<endl;
 	    dealer=place;
 	    place=placeJ;
 	  }
 	  else{
 	    
-	    place=(place+1)%nbJMax;
+	    place=(place+1)%NB_CHAISE;
 	  }
 	}while(placeJ!=place);
       }
     }
     char jEnMoins[]="QuitJ&";
     write(descEnvoie,jEnMoins,10);
-    cout<<"Joueur supprim√© succ√©s"<<endl;
+    cout<<"Joueur supprimÅÈ succÅÈs"<<endl;
   }
 }
 void Table::removeJNoMoney(){
-  for(int i=0;i<nbJMax;i++){
+  for(int i=0;i<NB_CHAISE;i++){
     if(joueurs[i]!=NULL && joueurs[i]->getJetonDebutDeManche()==0){
       removeJoueur(i);
     }
@@ -286,7 +287,7 @@ void Table::removeJNoMoney(){
 }
  void Table::verifierPresenceJoueur(){
   
-  for(int i=0;i<nbJMax;i++){
+  for(int i=0;i<NB_CHAISE;i++){
     if(joueurs[i]!=NULL && (!actif[i] || !joueurs[i]->isActif())){
       removeJoueur(i);
     }
@@ -301,9 +302,9 @@ void Table::removeJNoMoney(){
 ////////////////////////////////Methode de lancement de  jeu/////////////////////////////
 ///////////////////////////////                            /////////////////////////
 void Table::run(){
-  cout<<"Table lanc√©"<<endl;
+  cout<<"Table lancÅÈ"<<endl;
   while(isServeur){
-    //Initialise √† faux l'ensemble de lecture √† surveiller et positionne √† vrai les descripteurs √† surveiller
+    //Initialise Å‡ faux l'ensemble de lecture Å‡ surveiller et positionne Å‡ vrai les descripteurs Å‡ surveiller
     FD_ZERO(&desc_en_lect);
     FD_SET(descTable,&desc_en_lect);
     if(isServeur)
@@ -312,7 +313,7 @@ void Table::run(){
       FD_SET(spectacteurs[i]->getDesc(),&desc_en_lect);
     }
     int sel=select(descMax+1,&desc_en_lect,NULL,NULL,NULL);
-    cout<<"On a re√ßu un paquet "<<brPub.returnPort()<<endl;
+    cout<<"On a reÅÁu un paquet "<<brPub.returnPort()<<endl;
     //Si erreur au select
     if(sel==-1){
       cout<<"Erreur au select"<<endl;
@@ -329,7 +330,7 @@ void Table::run(){
 	    actionServeur();
 	}
 	else{
-	  //Si c'est un client √† l'origine de la sortie du select
+	  //Si c'est un client Å‡ l'origine de la sortie du select
 	  int parcourSpec=0;
 	  bool sortieParcours=true;
 	  while(sortieParcours && parcourSpec!=nbSpec){
@@ -356,13 +357,13 @@ void Table::lancerPartie(){
     cout<<"La grosseBlind est: "<<grosseBlind<<endl;
 
     joueurEnListe=nbJoueur;
-    cout<<"Parti lanc√©"<<endl;
+    cout<<"Parti lancÅÈ"<<endl;
     distribuer();
     joueurEnListe=nbJoueur;
     cout<<"Le nombre de joueur est de : " <<joueurEnListe<<endl;
     mise=miseMin;
     prochainAMiser=aMiser(grosseBlind);
-    cout<<"Le premier √† miser est: "<<prochainAMiser<<endl;
+    cout<<"Le premier Å‡ miser est: "<<prochainAMiser<<endl;
     lancerPartieReseau(petiteBlind,grosseBlind);
     if(joueurEnListe==1 || tourDeMise(2)){
       cout<<"On distribue le pot"<<endl;
@@ -408,9 +409,9 @@ void Table::lancerPartie(){
 	    }
 	    cout<<"Affiche pot "<<pot<<endl;
 	    pot = distribuerLePot();
-	    for(int i=0;i<nbJMax;i++){
+	    for(int i=0;i<NB_CHAISE;i++){
 	      if(joueurs[i]!=NULL){
-		cout<<"Le joueur en position "<<i<<" √† " <<joueurs[i]->getJeton()<<" "<<joueurs[i]->getJetonDebutDeManche()<<endl;
+		cout<<"Le joueur en position "<<i<<" Å‡ " <<joueurs[i]->getJeton()<<" "<<joueurs[i]->getJetonDebutDeManche()<<endl;
 	      }
 	    }
 	    cout<<"APRES POT"<<endl;
@@ -418,7 +419,7 @@ void Table::lancerPartie(){
 	}
       }
     }
-    cout<<"Le poker est fini, c'√©tait une tr√®s belle partie"<<endl;
+    cout<<"Le poker est fini, c'ÅÈtait une trÅËs belle partie"<<endl;
     cout<<"On regarde si on peux relancer une partie"<<endl;
     verifierPresenceJoueur();
     nettoieTable();
@@ -436,12 +437,12 @@ void Table::lancerPartie(){
 
 
 /////////////                                                            ////////////////////////////////////////////////////
-////////////Methode permettant de pr√©parer une nouvelle partie de poker //////////////////////////////////////////////////////////////
+////////////Methode permettant de prÅÈparer une nouvelle partie de poker //////////////////////////////////////////////////////////////
 ///////////                                                            //////////////////////////////////////////////////////////////
-//Pr√©pare le joueur au d√©marache d'une partie
+//PrÅÈpare le joueur au dÅÈmarache d'une partie
 void Table::preparerJoueur(){
   cout<<"Debut preparerJoueur()"<<endl;
-  for(int i=0;i<nbJMax;i++){
+  for(int i=0;i<NB_CHAISE;i++){
     if(joueurs[i]!=NULL){
       joueurs[i]->resetJ();
       actif[i]=true;
@@ -452,20 +453,20 @@ void Table::preparerJoueur(){
 //Choix du nouveau dealer
 void Table::newDealer(){
   if(nbJoueur>0){
-    dealer=(dealer+1)%nbJMax;
+    dealer=(dealer+1)%NB_CHAISE;
     while(joueurs[dealer]==NULL){
       dealer++;
-      dealer=dealer%nbJMax;
+      dealer=dealer%NB_CHAISE;
     }
   }
 }
-//D√©termine la small blind
+//DÅÈtermine la small blind
 int Table::smallBlind(){
   //////Partie Jeu
-  int placeSmall=(dealer+1)%nbJMax;
+  int placeSmall=(dealer+1)%NB_CHAISE;
   while(joueurs[placeSmall]==NULL){
     placeSmall++;
-    placeSmall=placeSmall%nbJMax;
+    placeSmall=placeSmall%NB_CHAISE;
   }
   if(joueurs[placeSmall]->getJetonDebutDeManche()>miseMin/2){
     pot+=miseMin/2;
@@ -481,13 +482,13 @@ int Table::smallBlind(){
   }
   return placeSmall;
 }
-//D√©termine la big blind
+//DÅÈtermine la big blind
 int Table::bigBlind(const int smallBlind){
   ///////Partie Jeu
-  int placeBig=(smallBlind+1)%nbJMax;
+  int placeBig=(smallBlind+1)%NB_CHAISE;
   while(joueurs[placeBig]==NULL){
     placeBig++;
-    placeBig=placeBig%nbJMax;
+    placeBig=placeBig%NB_CHAISE;
   }
   if(joueurs[placeBig]->getJetonDebutDeManche()>miseMin){
     pot+=miseMin;
@@ -508,7 +509,7 @@ void Table::distribuer(){
   donnerCartes();
 }
 void Table::donnerCartes(){
-  for(int i=0;i<nbJMax;i++){
+  for(int i=0;i<NB_CHAISE;i++){
     if(joueurs[i]!=NULL){
       char cartes[25]="Carte&";
       joueurs[i]->setCartes(paquet.sortirCarte(),0);
@@ -520,7 +521,7 @@ void Table::donnerCartes(){
 }
 //Un joueur veut quitter la table pour la prochaine partie 
 void Table::joueurQuitteTable(int place){
-  for(int i=0;i<nbJMax;i++){
+  for(int i=0;i<NB_CHAISE;i++){
     if(joueurs[i]!=NULL && spectacteurs[place]->getDesc()==joueurs[i]->getDesc()){
       joueurs[i]->setActif(false);
     }
@@ -552,8 +553,8 @@ bool Table::tourDeMise(int verificateur){
   }
   cout<<"Sortie premier boucle tour de mise"<<endl;
   while(prochainAMiser != -1 && prochainAMiser!=dernierAMiser && joueurEnListe!=1 && nbJAllIn!=nbJoueur){
-    cout<<"Affiche prochain √† Miser: "<<prochainAMiser<<endl;
-    cout<<"Affiche dernier √† Miser: "<<dernierAMiser<<endl;
+    cout<<"Affiche prochain Å‡ Miser: "<<prochainAMiser<<endl;
+    cout<<"Affiche dernier Å‡ Miser: "<<dernierAMiser<<endl;
     methodeMiser();
   }
   return joueurEnListe==1;
@@ -562,7 +563,7 @@ bool Table::tourDeMise(int verificateur){
 //Attends que le joueur correspondant mise
 void Table::methodeMiser(){
   cout<<"methodeMiser()"<<endl;
-  cout<<"Le prochaine √† miser est: "<<prochainAMiser<<endl;
+  cout<<"Le prochaine Å‡ miser est: "<<prochainAMiser<<endl;
     if(!actif[prochainAMiser]){
       joueurMiseInactif(prochainAMiser);
       aJouer=true;
@@ -576,7 +577,7 @@ void Table::methodeMiser(){
       for(int i=0;i<spectacteurs.size();i++){
 	FD_SET(spectacteurs[i]->getDesc(),&desc_en_lect);
       }
-      cout<<"Apr√®s le select de methodeMiser"<<endl;
+      cout<<"AprÅËs le select de methodeMiser"<<endl;
       int sel=select(descMax+1,&desc_en_lect,NULL,NULL,NULL);
       //Si erreur au select
       if(sel==-1){
@@ -612,7 +613,7 @@ void Table::methodeMiser(){
 //Cherche le prochain devant miser
 int Table::aMiser(const int precMiseur){
   
-  for(int i=(precMiseur+1)%nbJMax;i!=precMiseur;i=(i+1)%nbJMax){
+  for(int i=(precMiseur+1)%NB_CHAISE;i!=precMiseur;i=(i+1)%NB_CHAISE){
     if(joueurs[i]!=NULL && !joueurs[i]->isFold() && !joueurs[i]->isAllIn())
       {
 	return i;
@@ -621,7 +622,7 @@ int Table::aMiser(const int precMiseur){
   cout<<"aMiser retourne : -1"<<endl;
   return -1;
 }
-//Pr√©pare une nouvelle manche
+//PrÅÈpare une nouvelle manche
 void Table::newManche(){
   cout<<"Une nouvelle manche se lance"<<endl;
   mise=0;
@@ -632,13 +633,13 @@ void Table::newManche(){
     jAllIn.pop_back();
   }
   cout<<"On a fini de vider les joueur all In"<<endl;
-  for(int i=0;i<nbJMax;i++){
+  for(int i=0;i<NB_CHAISE;i++){
     if(joueurs[i]!=NULL)
       joueurs[i]->setJetonDebutDeManche(joueurs[i]->getJeton());
   }
   
   prochainAMiser=aMiser(dealer);
-  cout<<"Fin de la pr√©partation de la nouvelle manche"<<endl;
+  cout<<"Fin de la prÅÈpartation de la nouvelle manche"<<endl;
 }
 //Pose le flop
 void Table::poserFlop(int placeNext){
@@ -653,16 +654,15 @@ void Table::poserTurnRiver(int placeNext){
   milieu.push_back(paquet.sortirCarte());
   envoyerBoard(placeNext,milieu.size()-1);
 }
-//Determine le ou les gagnants. Mets les perdants √† fold
+//Determine le ou les gagnants. Mets les perdants Å‡ fold
 
 //Distribue le pot et nettoie la table
 int Table::distribuerLePot(){
   cout<<"teste 0 "<<pot<<endl;
   int restePot=0;
-  int cpt=-1;
+  int cpt=0;
   while(pot>0){
     cout<<"On vide le pot"<<endl;
-    cpt++;
     pot+=restePot;
     restePot=0;
     int pointMax=classementJoueurs[cpt][1];
@@ -670,7 +670,7 @@ int Table::distribuerLePot(){
     
     int cptNoAllIn=0;
     int sommeMax=0;
-    while(cpt<nbJMax && pointMax==classementJoueurs[cpt][1]){
+    while(cpt<NB_CHAISE && pointMax==classementJoueurs[cpt][1]){
       int place=classementJoueurs[cpt][0];
     
       if(joueurs[place]->isAllIn()){
@@ -725,9 +725,9 @@ int Table::distribuerLePot(){
       }
     }
   }
-  cout<<"Apr√®s distribution du pot"<<endl;
+  cout<<"AprÅËs distribution du pot"<<endl;
   //Envoye les gagnants/Perdant ici.........
-  for(int i=0;i<nbJMax;i++){
+  for(int i=0;i<NB_CHAISE;i++){
     if(joueurs[i]!=NULL && joueurs[i]->getJetonDebutDeManche()!=joueurs[i]->getJeton()){
       gagnantPerdantSomme(i);
       joueurs[i]->setJeton(joueurs[i]->getJetonDebutDeManche());
@@ -743,7 +743,7 @@ int Table::distribuerLePot(){
   return restePot;
 }
 void Table::emporteLePot(){
-  for(int place=0;place<nbJMax;place++){
+  for(int place=0;place<NB_CHAISE;place++){
     if(joueurs[place]!=NULL && !joueurs[place]->isFold()){
       joueurs[place]->setJetonDebutDeManche(joueurs[place]->getJeton());
       joueurs[place]->nouveauGain(pot);
@@ -774,7 +774,7 @@ void Table::nettoieTable(){
   instanceAllIn=false;
   petiteBlind=-1;
   grosseBlind=-1;
-  for(int i=0;i<nbJMax;i++){
+  for(int i=0;i<NB_CHAISE;i++){
     actif[i]=false;
   }
   mise=miseMin;
@@ -794,7 +794,7 @@ void Table::nettoieTable(){
 
 
 //////////////////////////                   //////////////////////////////////////
-/////////////////////////Les m√©thodes de mise////////////////////////////////////////
+/////////////////////////Les mÅÈthodes de mise////////////////////////////////////////
 ////////////////////////                    ////////////////////////////////////////
 void Table::joueurFold(int place){
   joueurEnListe--;
@@ -810,7 +810,7 @@ void Table::joueurAllIn(int place){
   nbJAllIn++;
   jAllIn.push_back(place);
   pot+=joueurs[place]->getJeton();
-  miserReseau(place,joueurs[place]->getJeton()); //Faut envoyer mise d'all in avant de mettre les jeton √† 0
+  miserReseau(place,joueurs[place]->getJeton()); //Faut envoyer mise d'all in avant de mettre les jeton Å‡ 0
   joueurs[place]->setJeton(0);
 }
 void Table::joueurMise(char *miseChar,int place){
@@ -848,7 +848,7 @@ void Table::joueurMise(char *miseChar,int place){
 	joueurs[place]->setJeton(joueurs[place]->getJeton()-miseJ);
 	dernierAMiser=place;
 	mise=miseEffectue;
-	cout<<"Affiche mise apr√®s mise d'un joueur: "<<mise<<endl;
+	cout<<"Affiche mise aprÅËs mise d'un joueur: "<<mise<<endl;
 	miserReseau(place,miseJ);
       }
     }
@@ -876,12 +876,12 @@ void Table::joueurMiseInactif(int place){
     joueurFold(place);
   }
 }
-// Creer le pot parral√®le d'un joueur all In
+// Creer le pot parralÅËle d'un joueur all In
 int Table::newPotSc(){
   int placeJAllIn=jAllIn.back();
   int potSc=pot;
   int sommeAllIn=joueurs[placeJAllIn]->miseDeCetteManche();
-  for(int i=0;i<nbJMax;i++){
+  for(int i=0;i<NB_CHAISE;i++){
     if(joueurs[i]!=NULL){
       int sommeI=joueurs[i]->miseDeCetteManche();
       if(i!=placeJAllIn && sommeI>sommeAllIn){
@@ -932,7 +932,7 @@ void Table::messageSpec(char* aEnvoyer,int taille){
 void Table::convertirTableEnChar(Spectateur* s){
   char aEnvoyer[255]="";
   char type[7]="NewJo";
-  for(int i=0;i<nbJMax;i++){
+  for(int i=0;i<NB_CHAISE;i++){
     if(joueurs[i]!=NULL){
       strcat(aEnvoyer,type);
       strcat(aEnvoyer,separateur);
@@ -1029,7 +1029,7 @@ void Table::redonnerSonJeu(int place,Spectateur* s){
 
 
 //Pour transmettre les informations du jeu en reseau
-///////////////////Previens qu'une partie va √™tre lanc√©////////////////////////
+///////////////////Previens qu'une partie va ÅÍtre lancÅÈ////////////////////////
 void Table::lancerPartieReseau(int petiteBlind,int grosseBlind){
   char convDealChar[30]="Deale&";
   char dealerChar[3]="";
@@ -1057,7 +1057,7 @@ void Table::lancerPartieReseau(int petiteBlind,int grosseBlind){
   strcat(convDealChar,gBChar);
   strcat(convDealChar,separateur);
   //prochainAMiser=aMiser(grosseBlind);
-  //cout<<"Affiche prochain √† jouer: "<<prochainAMiser<<endl;
+  //cout<<"Affiche prochain Å‡ jouer: "<<prochainAMiser<<endl;
   if(joueurs[grosseBlind]->getJeton()==0){
     char miseGBChar[10]="";
     sprintf(miseGBChar,"%d",joueurs[grosseBlind]->getJetonDebutDeManche());
@@ -1077,7 +1077,7 @@ void Table::lancerPartieReseau(int petiteBlind,int grosseBlind){
   messageSpec(convDealChar,30);
 }
 /************************************************************************************/
-////////////////////////Envoie les cartes au joueur concern√©////////////////////////
+////////////////////////Envoie les cartes au joueur concernÅÈ////////////////////////
 ////////////////////////Protocole Carte&place&valeur&valeur////////////////////////
 void Table::convertirJoueurEnCarte(int place){
   char cartes[25]="Carte&";
@@ -1111,7 +1111,7 @@ void Table::miserReseau(int place,int miseJ){
   strcat(joueurMise,separateur);
   messageSpec(joueurMise,30);
 }
-//////////////////Envoie les classementJoueurs et les sommes gagn√©///////////////////////////
+//////////////////Envoie les classementJoueurs et les sommes gagnÅÈ///////////////////////////
 /////////////////Protocole Gagna&place&somme&/////////////////////////////////////
 void Table::gagnantPerdantSomme(int place){
   if(joueurs[place]->getJetonDebutDePartie()>=joueurs[place]->getJetonDebutDeManche()){
@@ -1172,7 +1172,7 @@ void Table::envoyerBoard(int next,int debBoard){
 
 
 ///////////////////////                                        ////////////////////
-//////////////////////Methode de convertion re√ßu par un client/////////////////////
+//////////////////////Methode de convertion reÅÁu par un client/////////////////////
 /////////////////////                                         //////////////////////
 //////////////////////////////Demande d'un spec//////////////////////////////////////
 void Table::actionSpec(int placeSpec){
@@ -1221,7 +1221,7 @@ void Table::actionSpecJoueur(int placeSpec){
 	}
 	else{
 	  if(recuSpec[0]=='A' && recuSpec[1]=='b' && recuSpec[2]=='s' && recuSpec[3]=='e' && recuSpec[4]=='n'){
-	    
+	    actif[prochainAMiser]=false;
 	  }
 	}
       }
@@ -1245,7 +1245,7 @@ bool Table::convertirCharDeJoueur(char* aConvertir,Spectateur* s,int& place,int&
   placeCar[cpt]='\0';
   cout<<"place: "<<placeCar<<endl;
   place=atoi(placeCar);
-  if(place>nbJMax || joueurs[place]!=NULL){
+  if(place>NB_CHAISE || joueurs[place]!=NULL){
     return false;
   }
   cpt++;
@@ -1284,6 +1284,7 @@ void Table::modifBDD(int placeJ){
   //Chez jm
   //if(mysql_real_connect(&utilisateur,"localhost","root","azertySQL","pokerL3",0,NULL,0)){   
     cout<<"bouh1"<<endl;
+    mysql_query(&utilisateur,"LOCK TABLES infoclients WRITE");
     mysql_query(&utilisateur,"SELECT * FROM infoclients");
     MYSQL_RES * result =NULL;
     MYSQL_ROW row;
@@ -1309,6 +1310,7 @@ void Table::modifBDD(int placeJ){
     os<<joueurs[placeJ]->getJetonDebutDeManche()+argent;
     string requete="update infoclients set money='"+os.str()+"'where Username='"+joueurs[placeJ]->getNom()+"'";
     mysql_query(&utilisateur,requete.c_str());
+    mysql_query(&utilisateur,"UNLOCK TABLES");
     mysql_close(&utilisateur);
     cout<<"bouh5"<<endl;
   }
@@ -1317,7 +1319,7 @@ void Table::modifBDD(int placeJ){
   }
 }
 bool Table::ajouterJetonTable(Spectateur* s,int& jeton){
-  for(int i=0;i<nbJMax;i++){
+  for(int i=0;i<NB_CHAISE;i++){
     if(joueurs[i]!=NULL){
       if(s->getNom()==joueurs[i]->getNom()){
 	return false;
@@ -1333,6 +1335,7 @@ bool Table::ajouterJetonTable(Spectateur* s,int& jeton){
   if(mysql_real_connect(&utilisateur,"venus","flucia","flucia","flucia",0,NULL,0)){
   //Chez jm
   //if(mysql_real_connect(&utilisateur,"localhost","root","azertySQL","pokerL3",0,NULL,0)){   
+    mysql_query(&utilisateur,"LOCK TABLES infoclients WRITE");
     mysql_query(&utilisateur,"SELECT * FROM infoclients");
 
         
@@ -1348,6 +1351,7 @@ bool Table::ajouterJetonTable(Spectateur* s,int& jeton){
     while(!joueurExiste && (row = mysql_fetch_row(result))){
       
       if(row[PSEUDO] == s->getNom()){
+	
 	joueurExiste=true;
       }
     }
@@ -1372,13 +1376,14 @@ bool Table::ajouterJetonTable(Spectateur* s,int& jeton){
       cout<<os<<endl;
       string requete="update infoclients set money='"+os.str()+"' where Username='"+s->getNom()+"'";
       mysql_query(&utilisateur,requete.c_str());
+      mysql_query(&utilisateur,"UNLOCK TABLES");
       mysql_close(&utilisateur);
       return true;
     }
   
   }
   else{
-    cout<<"Erreur de la connexion √† la base de donn√©e"<<endl;
+    cout<<"Erreur de la connexion Å‡ la base de donnÅÈe"<<endl;
     return false;
   }
 }
@@ -1397,7 +1402,7 @@ bool Table::ajouterJetonTable(Spectateur* s,int& jeton){
 void Table::actionServeur(){
   char buf[100]="";
   if(read(descRecu,buf,100) == 0){
-    cout<<"Le serveur est partie. Finisez votre derni√®re partie et supprimer les tables"<<endl;
+    cout<<"Le serveur est partie. Finisez votre derniÅËre partie et supprimer les tables"<<endl;
     close(descRecu);
     close(descEnvoie);
     isServeur=false;
@@ -1422,7 +1427,7 @@ void Table::erreur(){
     delete spectacteurs.back();
     spectacteurs.pop_back();
   }
-  for(int i=0;i<nbJMax;i++){
+  for(int i=0;i<NB_CHAISE;i++){
     if(joueurs[i]!=NULL)
       delete joueurs[i];
     
@@ -1493,7 +1498,7 @@ int Table::EssayerMain4CartesMilieu(int array[],int player)
 void Table::RemplissageJeuxMax()
 {
   cout<<"Debut RemplissagejeuxMax"<<endl;
-  for (int q=0;q<nbJMax;q++)
+  for (int q=0;q<NB_CHAISE;q++)
     {
       if(joueurs[q]!=NULL){
 	if (joueurs[q]->getValeurMain3() > joueurs[q]->getValeurMain4())
@@ -1534,7 +1539,7 @@ void Table::EvaluerMain2()
   int stack[10],k;
   int PointsCourant;
   
-  for (int q=0;q<nbJMax;q++){
+  for (int q=0;q<NB_CHAISE;q++){
     //joueurs[q].valeurMain4 = 0;
     if(joueurs[q]!=NULL){
       joueurs[q]->setValeurMain4(0);
@@ -1586,7 +1591,7 @@ void Table::EvaluerMain()
   int PointsCourant;
   
   cout<<"TESTE 0"<<endl;
-  for (int q=0;q<nbJMax;q++){
+  for (int q=0;q<NB_CHAISE;q++){
     if(joueurs[q]!=NULL){
       joueurs[q]->setValeurMain3(0);
       cout<<"TTTTTTEEEESSSTEE"<<endl;
@@ -1639,9 +1644,9 @@ void Table::SetClassementJoueurs()
   this->EvaluerMain2();
   this->RemplissageJeuxMax();
   //cout<<"HELLO world: "<<endl;
-  int tab_joueurs[nbJMax][2];
+  int tab_joueurs[NB_CHAISE][2];
   
-  for (int i=0;i<nbJMax;i++)
+  for (int i=0;i<NB_CHAISE;i++)
     {
 	  if(joueurs[i]!=NULL){
 	    tab_joueurs[i][0] = i;
@@ -1654,7 +1659,7 @@ void Table::SetClassementJoueurs()
     }
   
   cout<<"Detection de la main max"<<endl;
-  for (int i=0;i<nbJMax;i++)
+  for (int i=0;i<NB_CHAISE;i++)
 	{
 	  if(joueurs[i]!=NULL && !joueurs[i]->isFold() ){
 	    if (joueurs[i]->getValeurMain3() > joueurs[i]->getValeurMain4() )
@@ -1665,7 +1670,7 @@ void Table::SetClassementJoueurs()
 	}
   
   cout<<"remplissage tableau num_joueur_point"<<endl;
-  for (int i=0;i<nbJMax;i++)
+  for (int i=0;i<NB_CHAISE;i++)
     {
       if(joueurs[i]!=NULL && !joueurs[i]->isFold()){
 	  tab_joueurs[i][0] = i;
@@ -1674,9 +1679,9 @@ void Table::SetClassementJoueurs()
     }
   cout<<"fin remplissage tableau num_joueur_point"<<endl;
   int tmp[2];
-  for (int i=0;i<nbJMax;i++)
+  for (int i=0;i<NB_CHAISE;i++)
     {
-      for(int j=i+1;j<nbJMax;j++){
+      for(int j=i+1;j<NB_CHAISE;j++){
 	if(tab_joueurs[j][1] > tab_joueurs[i][1])
 	  {
 	    tmp[0] = tab_joueurs[i][0];
@@ -1688,7 +1693,7 @@ void Table::SetClassementJoueurs()
 	  }
       }
     }
-  for(int i=0;i<nbJMax;i++){
+  for(int i=0;i<NB_CHAISE;i++){
     cout<<"place: "<<tab_joueurs[i][0]<<" "<<tab_joueurs[i][1]<<endl;
   }
   cout<<"copie du tableau dans l'attribut classement"<<endl;
@@ -1723,7 +1728,7 @@ int Table::ObtenirPointMain(Carte main[])
 	main_copie[4] = main[4];
     	int points;
     	int valMax = 0;
-    //Classement des cartes de la plus petite ÔøΩ la plus grande
+    //Classement des cartes de la plus petite úÛıΩ la plus grande
     qsort(main_copie,5,sizeof(Carte),comparerCartes);
      for (int i=0;i<5;i++)
      {
@@ -1742,7 +1747,7 @@ int Table::ObtenirPointMain(Carte main[])
     suite = couleur = brelan = carre = full = paires = CarteHaute = 0;
     int cpt = 0 ;
 
-    //Verification pour voir si il y a un carrÔøΩ
+    //Verification pour voir si il y a un carrúÛıΩ
     for (int i=0;i<2;i++){
         cpt = i;
         while (  cpt<i+3 && (main_copie[cpt].getValeur() == main_copie[cpt+1].getValeur()))
@@ -1781,7 +1786,7 @@ int Table::ObtenirPointMain(Carte main[])
                  cpt++;
            }
            if (cpt==i+2){
-              //Brelan a ÔøΩtÔøΩ detecter
+              //Brelan a úÛıΩtúÛıΩ detecter
               brelan = 1;
               CarteHaute=main_copie[i].getValeur();
               //Verification d'un full

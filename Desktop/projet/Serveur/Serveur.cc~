@@ -263,6 +263,7 @@ void Serveur::accepterClient(){
     else{
       string pseudo;
       string mdp;
+      cout<<pseudoMdp<<endl;
       convertionPseudoMdpClient(pseudoMdp,pseudo,mdp);
       Client* cl=connexionClientBDD(descBrCv,pseudo,mdp);
       if(cl != NULL){

@@ -106,6 +106,7 @@ class Table{
      *Permet de supprimer un joueur en place 'place' dans le tableau des joueurs. Si le joueur est en cour de partie, il sera considéré comme inactif jusquà la fin de la partie ou jusqu'à une éventuel reconexion. A la suite de la partie, il sera supprimé de la table si il n'est pas reconnecté.  
     */
     void removeJoueur(int); //Suprime un joueur, si il est dans une parti, il sera suprimé à la fin de la partie
+    void removeJNoMoney(); //
     void ajouterJoueur(char*);//Ajoute un joueur
         /**
      *\fn void verifierPresenceJoueur()

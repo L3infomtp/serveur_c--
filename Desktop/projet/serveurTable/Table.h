@@ -459,6 +459,9 @@ class Table{
    *@brief Un Spectateur ou un joueur en position 'place' a envoyé un message
   */
   void actionSpecJoueur(int);//Un joueur ou un spectateur à envoyer un paquet au serveur  
+  void actionUtilisateur(int); 
+  char* decompositionMessage(char*,char*,int);
+
   /**
    *\fn bool convertirCharDeJoueur(char* message, Spectateur* s, int& place, int jeton)
    *@brief Un spectateur veut devenir joueur

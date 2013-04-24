@@ -105,6 +105,7 @@ class Serveur{
   void convertionPseudoMdpClient(char*,string&, string&);
   void convertionClientChar(char* buffer,Client* cl);
   void convertionTableChar(char*);
+  void envoieTable(int); //int descripteur utilisateur
 
   Client* connexionClientBDD(const int,const string,const string);
   

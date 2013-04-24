@@ -335,7 +335,7 @@ void Table::run(){
 	  bool sortieParcours=true;
 	  while(sortieParcours && parcourSpec!=nbSpec){
 	    if(FD_ISSET(spectacteurs[parcourSpec]->getDesc(),&desc_en_lect)){
-	      actionSpec(parcourSpec);
+	      actionUtilisateur(parcourSpec);
 	      sortieParcours=false;
 	    }
 	    else{
@@ -597,7 +597,7 @@ void Table::methodeMiser(){
 	    bool sortieParcours=true;
 	    while(sortieParcours && parcourSpec<spectacteurs.size()){
 	      if(FD_ISSET(spectacteurs[parcourSpec]->getDesc(),&desc_en_lect)){
-		actionSpecJoueur(parcourSpec);
+		actionUtilisateur(parcourSpec);
 		sortieParcours=false;
 	      }
 	      else{
@@ -1221,7 +1221,17 @@ void Table::actionSpecJoueur(int placeSpec){
 	}
 	else{
 	  if(recuSpec[0]=='A' && recuSpec[1]=='b' && recuSpec[2]=='s' && recuSpec[3]=='e' && recuSpec[4]=='n'){
-	    
+	    actif[prochainAMiser]=false;
+	    char absentChar[10]="Absen&";
+	    char placeChar[3]="";
+	    sprintf(placeChar,"%d",prochainAMiser);
+	    strcat(absentChar,placeChar);
+	    messageSpec(absentChar,10);
+	  }
+	  else{
+	    if(recuSpec[0]=='Q' && recuSpec[1]=='u' && recuSpec[2]=='i' && recuSpec[3]=='t' && recuSpec[4]=='T'){
+	      joueurQuitteTable(placeSpec);
+	    }
 	  }
 	}
       }
@@ -1231,7 +1241,58 @@ void Table::actionSpecJoueur(int placeSpec){
     actionSpec(placeSpec);
   }
   cout<<"Fin actionSpecJoueur(int)"<<endl;
+  }
+
+void Table::actionUtilisateur(int placeSpec){
+  char recu[1024]="";
+  int taille=recv(spectacteurs[placeSpec]->getDesc(),recu,1024,0);
+  if(taille==0){
+    removeSpectateur(placeSpec);
+  }
+  while(strlen(recu)!=0){
+    if(recu[0]=='M' && recu[1]=='i' && recu[2]=='s' && recu[3]=='e' && recu[4]=='r'){
+      char miseChar[100]="";
+      strcpy(recu,decompositionMessage(recu+6,miseChar,1));
+      if(spectacteurs[placeSpec]->getDesc()==joueurs[prochainAMiser]->getDesc()){
+	joueurMise(miseChar,prochainAMiser);
+      }
+    }
+    else{
+      if(recu[0]=='J' && recu[1]=='o' && recu[2]=='u' && recu[3]=='e' && recu[4]=='r'){
+	char jouerChar[100]="";
+	strcpy(recu,decompositionMessage(recu+6,jouerChar,2));
+	addJoueur(spectacteurs[placeSpec],jouerChar);
+      }
+      else{
+	if(recu[0]=='A' && recu[1]=='b' && recu[2]=='s' && recu[3]=='e' && recu[4]=='n'){
+	  actif[prochainAMiser]=false;
+	  char absentChar[10]="Absen&";
+	  char placeChar[3]="";
+	  sprintf(placeChar,"%d",prochainAMiser);
+	  strcat(absentChar,placeChar);
+	  messageSpec(absentChar,10);
+	  strcpy(recu,recu+6);
+	}
+	if(recu[0]=='Q' && recu[1]=='u' && recu[2]=='i' && recu[3]=='t' && recu[4]=='T'){
+	  strcpy(recu,recu+6);
+	}
+      }
+    }
+  }
 }
+
+char* Table::decompositionMessage(char* recu,char* msg,int cpt){
+  int parcoursRecu=0;
+  while(cpt!=0){
+    msg[parcoursRecu]=recu[parcoursRecu];
+    if(recu[parcoursRecu]=='&'){
+      cpt--;
+    }
+    parcoursRecu++;
+  }
+  return recu+parcoursRecu;
+}
+
 
 
 bool Table::convertirCharDeJoueur(char* aConvertir,Spectateur* s,int& place,int& jeton){

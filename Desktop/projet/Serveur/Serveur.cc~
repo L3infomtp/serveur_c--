@@ -61,8 +61,8 @@ Serveur::Serveur(char* env[]){
   cout<<nomTable[0]<<endl;
   descLectMax=0;
   this->env=env;
-  for(int i=0;i<12;i++){
-    creerTable(env);
+  for(int i=0;i<10;i++){
+    creerTable();
   }
   brPub=Sock(SOCK_STREAM, (short)21345,0);
   //Creer le descripteur à surveiller en lecture
@@ -112,6 +112,11 @@ void Serveur::lanceServeur(){
   while(sortieBoucle != "sortie"){
     cout<<"Boucle du select"<<endl;
     //Initialise à faux l'ensemble de lecture à surveiller et positionne à vrai les descripteurs à surveiller
+    if(nbJ>(30*(tabTable.size()/10))){
+      for(int i=0;i<10;i++){
+	creerTable();
+      }
+    }
     FD_ZERO(&desc_en_lect);
     FD_SET(descBrPub,&desc_en_lect);
     FD_SET(0,&desc_en_lect);
@@ -178,7 +183,7 @@ void Serveur::lanceServeur(){
     }
   }
 }
-void Serveur::creerTable(char* env[]){
+void Serveur::creerTable(){
   string nom="";
   if(parcoursTableauNom<maxNom){
     nom=nomTable[parcoursTableauNom];
@@ -323,6 +328,7 @@ void Serveur::actionClient(int placeVecteur){
     }
   else{
     cout<<recuClient<<endl;
+    
     if(recuClient[0]=='M' && recuClient[1]=='o' && recuClient[2]=='d' && recuClient[3]=='i' && recuClient[4]=='f'){
       modifClient(recuClient+6,tabClient[placeVecteur]);
       return;
@@ -417,6 +423,7 @@ Client* Serveur::connexionClientBDD(const int descCli,const string pseudo,const 
   //if(mysql_real_connect(&utilisateur,"localhost","root","azertySQL","pokerL3",0,NULL,0)){ 
   //Chez la fac
   if(mysql_real_connect(&utilisateur,"venus","flucia","flucia","flucia",0,NULL,0)){
+    mysql_query(&utilisateur,"LOCK TABLES infoclients WRITE");
     mysql_query(&utilisateur,"SELECT * FROM infoclients");
     
     MYSQL_RES * result =NULL;
@@ -441,6 +448,7 @@ Client* Serveur::connexionClientBDD(const int descCli,const string pseudo,const 
       ss >> argent;
       cl= new Client(descCli,pseudo,argent,row[EMAIL],row[DOB],row[GENDER],row[LNAME],row[FNAME],row[ADRESS],row[CITY],row[ZIPCODE],row[COUNTRY]);
     }
+    mysql_query(&utilisateur,"UNLOCK TABLES");
     mysql_close(&utilisateur);
   }
   else{
@@ -472,14 +480,16 @@ void Serveur::modifClient(char* modification,Client* cl){
     case PASSWORD:
       {
       /////Penser à encrypter merci....
+	
 	string requete="update infoclients set Password='"+string(strtok(modification+cpt+1,separateur))+"' where Username='"+cl->getNom()+"'";
+	mysql_query(&utilisateur,"LOCK TABLES infoclients WRITE");
 	mysql_query(&utilisateur,requete.c_str());
 	break;
       }
     case EMAIL:
       {
-	cout<<"2"<<endl;
 	string requete="update infoclients set Email='"+string(strtok(modification+cpt+1,separateur))+"' where Username='"+cl->getNom()+"'";
+	mysql_query(&utilisateur,"LOCK TABLES infoclients WRITE");
 	mysql_query(&utilisateur,requete.c_str());
 	break;
       }
@@ -487,6 +497,7 @@ void Serveur::modifClient(char* modification,Client* cl){
       {
 	cout<<"2"<<endl;
 	string requete="update infoclients set DOB='"+string(strtok(modification+cpt+1,separateur))+"' where Username='"+cl->getNom()+"'";
+	mysql_query(&utilisateur,"LOCK TABLES infoclients WRITE");
 	mysql_query(&utilisateur,requete.c_str());
 	break;
       }
@@ -494,6 +505,7 @@ void Serveur::modifClient(char* modification,Client* cl){
       {
 	cout<<"Le client veut modifier le genre(il a surement changé de sexe pendant la nuit, vous voyez)"<<endl;
 	string requete="update infoclients set Gender='"+string(strtok(modification+cpt+1,separateur))+"' where Username='"+cl->getNom()+"'";
+	mysql_query(&utilisateur,"LOCK TABLES infoclients WRITE");
 	mysql_query(&utilisateur,requete.c_str());
 	break;
       }
@@ -501,12 +513,14 @@ void Serveur::modifClient(char* modification,Client* cl){
       {
 	cout<<"2"<<endl;
 	string requete="update infoclients set LName ='"+string(strtok(modification+cpt+1,separateur))+"' where Username='"+cl->getNom()+"'";
+	mysql_query(&utilisateur,"LOCK TABLES infoclients WRITE");
 	mysql_query(&utilisateur,requete.c_str());
 	break;
       }
     case FNAME:
       {
 	string requete="update infoclients set FName='"+string(strtok(modification+cpt+1,separateur))+"' where Username='"+cl->getNom()+"'";
+	mysql_query(&utilisateur,"LOCK TABLES infoclients WRITE");
 	mysql_query(&utilisateur,requete.c_str());
 	break;
       }
@@ -514,24 +528,28 @@ void Serveur::modifClient(char* modification,Client* cl){
       {
 	cout<<"Modification de l'adresse"<<endl;
 	string requete="update infoclients set Adress='"+string(strtok(modification+cpt+1,separateur))+"' where Username='"+cl->getNom()+"'";
+	mysql_query(&utilisateur,"LOCK TABLES infoclients WRITE");
 	mysql_query(&utilisateur,requete.c_str());
 	break;
       }
     case CITY:
       {
 	string requete="update infoclients set City='"+string(strtok(modification+cpt+1,separateur))+"' where Username='"+cl->getNom()+"'";
+	mysql_query(&utilisateur,"LOCK TABLES infoclients WRITE");
 	mysql_query(&utilisateur,requete.c_str());
 	break;
       }
     case ZIPCODE:
       {
 	string requete="update infoclients set ZipCode="+string(strtok(modification+cpt+1,separateur))+" where Username='"+cl->getNom()+"'";
+	mysql_query(&utilisateur,"LOCK TABLES infoclients WRITE");
 	mysql_query(&utilisateur,requete.c_str());
 	break;
       }
   case COUNTRY:
       {
 	string requete="update infoclients set Country='"+string(strtok(modification+cpt+1,separateur))+"' where Username='"+cl->getNom()+"'";
+	mysql_query(&utilisateur,"LOCK TABLES infoclients WRITE");
 	mysql_query(&utilisateur,requete.c_str());
 	break;
       }
@@ -541,6 +559,7 @@ void Serveur::modifClient(char* modification,Client* cl){
       }
 
     }
+    mysql_query(&utilisateur,"UNLOCK TABLES");
     mysql_close(&utilisateur);
   }
   else{

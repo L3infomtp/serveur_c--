@@ -33,7 +33,8 @@ class Serveur{
    *\fn Serveur(char** env)
    *@brief Le constructeur de Serveur
    *Permet de creer un serveur. Ce constructeur va créer plusiers processus fils pour créer des tables ayant les même variables d'environement que son père 
-  */
+   \param env Les variables d'environement du Serveur principal
+*/
   Serveur(char**);
   /**
    *\fn ~Serveur()
@@ -51,7 +52,7 @@ class Serveur{
    *\fn void creerTable(char** env)
    *@brief Créer un processus fils et applique un recouvrement avec le processus projet/serveurTable/Table.
   */
-  void creerTable(char**);
+  void creerTable();
   /**
    *\fn void accepterClient()
    *@brief Accepte un nouveau client.
@@ -68,29 +69,35 @@ class Serveur{
    *\fn void actionClient(int place)
    *@brief Un client a envoyé une donnée
    *Permet de recupérer l'action du client à la position 'place' dans la table des client.
+   \param place La position dans le tableau des clients de l'utilisateur ayant effectué une action
   */
   void actionClient(int);
   /**
    *\fn void decoClient(int place)
    *@brief Un client est parti
    *Permet de supprimer le client à la position 'place' dans le tableau des clients 
+   *\param place La position dans le tableau des clients de l'utilisateur quittant le Serveur
   */
   void decoClient(int);
   /**
    *\fn void msgClient(char* message)
    *@brief Envoie message à tous les clients
+   *\param message Le message a envoyé à tous les utilisateurs
   */
   void msgClient(char*);
   /**
    *\fn void modifiClient(char* modification,Client* c)
    *@brief Modifie une donnée de la base de donnée d'un client
    *Permet d'appliquer 'modification' sur le n-uplets du Client 'c'
+   *\param modification La chaine de caractère indiquant la modification à éffectuer
+   *\param c L'utilisateur a modifier
   */
   void modifClient(char*,Client*);
   /**
    *\fn void actionTable(int place)
    *@brief Une table a envoyé une donnée
    *Permet de récupérer l'action d'une Table à la position 'place' dans la table des Table
+   *\param place La position dans le tableau des Tables ayant effectué une action
   */
   void actionTable(int);
 

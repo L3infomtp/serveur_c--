@@ -26,6 +26,7 @@
 #define CITY 9
 #define ZIPCODE 10
 #define COUNTRY 11
+#define NB_CHAISE 10
 /////////////////////////////////////Variable globale//////////////////////////////
 const char separateur[2]="&";
 /****************************************************************************************/
@@ -51,12 +52,12 @@ Table::Table(int maxJ, int miseDep){
   nbJAllIn=0;
   prochainAMiser=0;
   dernierAMiser=0;
-  joueurs=new Joueur*[nbJMax];
-  for(int i=0;i<nbJMax;i++){
+  joueurs=new Joueur*[NB_CHAISE];
+  for(int i=0;i<NB_CHAISE;i++){
     joueurs[i]=NULL;
   }
-  actif=new bool[nbJMax];
-  for(int i=0;i<nbJMax;i++){
+  actif=new bool[NB_CHAISE];
+  for(int i=0;i<NB_CHAISE;i++){
     actif[i]=false;
   }
   //Partie constructeur poker
@@ -99,12 +100,12 @@ Table::Table(int descE,int descR,int maxJ, int miseDep){
   nbJAllIn=0;
   prochainAMiser=0;
   dernierAMiser=0;
-  joueurs=new Joueur*[nbJMax];
-  for(int i=0;i<nbJMax;i++){
+  joueurs=new Joueur*[NB_CHAISE];
+  for(int i=0;i<NB_CHAISE;i++){
     joueurs[i]=NULL;
   }
-  actif=new bool[nbJMax];
-  for(int i=0;i<nbJMax;i++){
+  actif=new bool[NB_CHAISE];
+  for(int i=0;i<NB_CHAISE;i++){
     actif[i]=false;
   }
   //Partie constructeur poker
@@ -117,15 +118,15 @@ Table::Table(int descE,int descR,int maxJ, int miseDep){
   mise = miseMin;
   pot = 0;
   instanceAllIn=false;
-  classementJoueurs=new int*[nbJMax];
-  for(int i=0;i<nbJMax;i++){
+  classementJoueurs=new int*[NB_CHAISE];
+  for(int i=0;i<NB_CHAISE;i++){
     classementJoueurs[i]=new int[2];
   }
 
 }
 Table::~Table(){
   
-  for(int i=0;i<nbJMax;i++){
+  for(int i=0;i<NB_CHAISE;i++){
     if(joueurs[i]!=NULL){
       actif[i]=false;
       removeJoueur(i);
@@ -134,7 +135,7 @@ Table::~Table(){
   for(int i=0;i<spectacteurs.size();i++){
     removeSpectateur(i);
   }
-  for(int i=0;i<nbJMax;i++){
+  for(int i=0;i<NB_CHAISE;i++){
     delete[] classementJoueurs[i];
   }
   delete[] classementJoueurs;
@@ -163,7 +164,7 @@ void Table::addSpectateur(){
       spectacteurs.push_back(s);
       //Partie reseau
       convertirTableEnChar(s);
-      for(int i=0;i<nbJMax;i++){
+      for(int i=0;i<NB_CHAISE;i++){
 	if(joueurs[i]!=NULL && actif[i]==false && joueurs[i]->getNom()==s->getNom()){
 	  redonnerSonJeu(i,s);
 	}
@@ -227,7 +228,7 @@ void Table::addJoueur(Spectateur* s, char* aConvertir){
 }
 void Table::removeSpectateur(int placeSpec){
   int specDesc=spectacteurs[placeSpec]->getDesc();
-  for(int i=0;i<nbJMax;i++){
+  for(int i=0;i<NB_CHAISE;i++){
     //Implémenter la méthode getDesc de la classe joueur!!!!!!!
     cout<<"C'est un joueur"<<endl;
     if(joueurs[i]!=NULL && specDesc==joueurs[i]->getDesc()){
@@ -267,7 +268,7 @@ void Table::removeJoueur(int placeJ){
 	  }
 	  else{
 	    
-	    place=(place+1)%nbJMax;
+	    place=(place+1)%NB_CHAISE;
 	  }
 	}while(placeJ!=place);
       }
@@ -278,7 +279,7 @@ void Table::removeJoueur(int placeJ){
   }
 }
 void Table::removeJNoMoney(){
-  for(int i=0;i<nbJMax;i++){
+  for(int i=0;i<NB_CHAISE;i++){
     if(joueurs[i]!=NULL && joueurs[i]->getJetonDebutDeManche()==0){
       removeJoueur(i);
     }
@@ -286,7 +287,7 @@ void Table::removeJNoMoney(){
 }
  void Table::verifierPresenceJoueur(){
   
-  for(int i=0;i<nbJMax;i++){
+  for(int i=0;i<NB_CHAISE;i++){
     if(joueurs[i]!=NULL && (!actif[i] || !joueurs[i]->isActif())){
       removeJoueur(i);
     }
@@ -408,7 +409,7 @@ void Table::lancerPartie(){
 	    }
 	    cout<<"Affiche pot "<<pot<<endl;
 	    pot = distribuerLePot();
-	    for(int i=0;i<nbJMax;i++){
+	    for(int i=0;i<NB_CHAISE;i++){
 	      if(joueurs[i]!=NULL){
 		cout<<"Le joueur en position "<<i<<" à " <<joueurs[i]->getJeton()<<" "<<joueurs[i]->getJetonDebutDeManche()<<endl;
 	      }
@@ -441,7 +442,7 @@ void Table::lancerPartie(){
 //Prépare le joueur au démarache d'une partie
 void Table::preparerJoueur(){
   cout<<"Debut preparerJoueur()"<<endl;
-  for(int i=0;i<nbJMax;i++){
+  for(int i=0;i<NB_CHAISE;i++){
     if(joueurs[i]!=NULL){
       joueurs[i]->resetJ();
       actif[i]=true;
@@ -452,20 +453,20 @@ void Table::preparerJoueur(){
 //Choix du nouveau dealer
 void Table::newDealer(){
   if(nbJoueur>0){
-    dealer=(dealer+1)%nbJMax;
+    dealer=(dealer+1)%NB_CHAISE;
     while(joueurs[dealer]==NULL){
       dealer++;
-      dealer=dealer%nbJMax;
+      dealer=dealer%NB_CHAISE;
     }
   }
 }
 //Détermine la small blind
 int Table::smallBlind(){
   //////Partie Jeu
-  int placeSmall=(dealer+1)%nbJMax;
+  int placeSmall=(dealer+1)%NB_CHAISE;
   while(joueurs[placeSmall]==NULL){
     placeSmall++;
-    placeSmall=placeSmall%nbJMax;
+    placeSmall=placeSmall%NB_CHAISE;
   }
   if(joueurs[placeSmall]->getJetonDebutDeManche()>miseMin/2){
     pot+=miseMin/2;
@@ -484,10 +485,10 @@ int Table::smallBlind(){
 //Détermine la big blind
 int Table::bigBlind(const int smallBlind){
   ///////Partie Jeu
-  int placeBig=(smallBlind+1)%nbJMax;
+  int placeBig=(smallBlind+1)%NB_CHAISE;
   while(joueurs[placeBig]==NULL){
     placeBig++;
-    placeBig=placeBig%nbJMax;
+    placeBig=placeBig%NB_CHAISE;
   }
   if(joueurs[placeBig]->getJetonDebutDeManche()>miseMin){
     pot+=miseMin;
@@ -508,7 +509,7 @@ void Table::distribuer(){
   donnerCartes();
 }
 void Table::donnerCartes(){
-  for(int i=0;i<nbJMax;i++){
+  for(int i=0;i<NB_CHAISE;i++){
     if(joueurs[i]!=NULL){
       char cartes[25]="Carte&";
       joueurs[i]->setCartes(paquet.sortirCarte(),0);
@@ -520,7 +521,7 @@ void Table::donnerCartes(){
 }
 //Un joueur veut quitter la table pour la prochaine partie 
 void Table::joueurQuitteTable(int place){
-  for(int i=0;i<nbJMax;i++){
+  for(int i=0;i<NB_CHAISE;i++){
     if(joueurs[i]!=NULL && spectacteurs[place]->getDesc()==joueurs[i]->getDesc()){
       joueurs[i]->setActif(false);
     }
@@ -612,7 +613,7 @@ void Table::methodeMiser(){
 //Cherche le prochain devant miser
 int Table::aMiser(const int precMiseur){
   
-  for(int i=(precMiseur+1)%nbJMax;i!=precMiseur;i=(i+1)%nbJMax){
+  for(int i=(precMiseur+1)%NB_CHAISE;i!=precMiseur;i=(i+1)%NB_CHAISE){
     if(joueurs[i]!=NULL && !joueurs[i]->isFold() && !joueurs[i]->isAllIn())
       {
 	return i;
@@ -632,7 +633,7 @@ void Table::newManche(){
     jAllIn.pop_back();
   }
   cout<<"On a fini de vider les joueur all In"<<endl;
-  for(int i=0;i<nbJMax;i++){
+  for(int i=0;i<NB_CHAISE;i++){
     if(joueurs[i]!=NULL)
       joueurs[i]->setJetonDebutDeManche(joueurs[i]->getJeton());
   }
@@ -659,10 +660,9 @@ void Table::poserTurnRiver(int placeNext){
 int Table::distribuerLePot(){
   cout<<"teste 0 "<<pot<<endl;
   int restePot=0;
-  int cpt=-1;
+  int cpt=0;
   while(pot>0){
     cout<<"On vide le pot"<<endl;
-    cpt++;
     pot+=restePot;
     restePot=0;
     int pointMax=classementJoueurs[cpt][1];
@@ -670,7 +670,7 @@ int Table::distribuerLePot(){
     
     int cptNoAllIn=0;
     int sommeMax=0;
-    while(cpt<nbJMax && pointMax==classementJoueurs[cpt][1]){
+    while(cpt<NB_CHAISE && pointMax==classementJoueurs[cpt][1]){
       int place=classementJoueurs[cpt][0];
     
       if(joueurs[place]->isAllIn()){
@@ -727,7 +727,7 @@ int Table::distribuerLePot(){
   }
   cout<<"Après distribution du pot"<<endl;
   //Envoye les gagnants/Perdant ici.........
-  for(int i=0;i<nbJMax;i++){
+  for(int i=0;i<NB_CHAISE;i++){
     if(joueurs[i]!=NULL && joueurs[i]->getJetonDebutDeManche()!=joueurs[i]->getJeton()){
       gagnantPerdantSomme(i);
       joueurs[i]->setJeton(joueurs[i]->getJetonDebutDeManche());
@@ -743,7 +743,7 @@ int Table::distribuerLePot(){
   return restePot;
 }
 void Table::emporteLePot(){
-  for(int place=0;place<nbJMax;place++){
+  for(int place=0;place<NB_CHAISE;place++){
     if(joueurs[place]!=NULL && !joueurs[place]->isFold()){
       joueurs[place]->setJetonDebutDeManche(joueurs[place]->getJeton());
       joueurs[place]->nouveauGain(pot);
@@ -774,7 +774,7 @@ void Table::nettoieTable(){
   instanceAllIn=false;
   petiteBlind=-1;
   grosseBlind=-1;
-  for(int i=0;i<nbJMax;i++){
+  for(int i=0;i<NB_CHAISE;i++){
     actif[i]=false;
   }
   mise=miseMin;
@@ -881,7 +881,7 @@ int Table::newPotSc(){
   int placeJAllIn=jAllIn.back();
   int potSc=pot;
   int sommeAllIn=joueurs[placeJAllIn]->miseDeCetteManche();
-  for(int i=0;i<nbJMax;i++){
+  for(int i=0;i<NB_CHAISE;i++){
     if(joueurs[i]!=NULL){
       int sommeI=joueurs[i]->miseDeCetteManche();
       if(i!=placeJAllIn && sommeI>sommeAllIn){
@@ -932,7 +932,7 @@ void Table::messageSpec(char* aEnvoyer,int taille){
 void Table::convertirTableEnChar(Spectateur* s){
   char aEnvoyer[255]="";
   char type[7]="NewJo";
-  for(int i=0;i<nbJMax;i++){
+  for(int i=0;i<NB_CHAISE;i++){
     if(joueurs[i]!=NULL){
       strcat(aEnvoyer,type);
       strcat(aEnvoyer,separateur);
@@ -1245,7 +1245,7 @@ bool Table::convertirCharDeJoueur(char* aConvertir,Spectateur* s,int& place,int&
   placeCar[cpt]='\0';
   cout<<"place: "<<placeCar<<endl;
   place=atoi(placeCar);
-  if(place>nbJMax || joueurs[place]!=NULL){
+  if(place>NB_CHAISE || joueurs[place]!=NULL){
     return false;
   }
   cpt++;
@@ -1284,6 +1284,7 @@ void Table::modifBDD(int placeJ){
   //Chez jm
   //if(mysql_real_connect(&utilisateur,"localhost","root","azertySQL","pokerL3",0,NULL,0)){   
     cout<<"bouh1"<<endl;
+    mysql_query(&utilisateur,"LOCK TABLES infoclients WRITE");
     mysql_query(&utilisateur,"SELECT * FROM infoclients");
     MYSQL_RES * result =NULL;
     MYSQL_ROW row;
@@ -1309,6 +1310,7 @@ void Table::modifBDD(int placeJ){
     os<<joueurs[placeJ]->getJetonDebutDeManche()+argent;
     string requete="update infoclients set money='"+os.str()+"'where Username='"+joueurs[placeJ]->getNom()+"'";
     mysql_query(&utilisateur,requete.c_str());
+    mysql_query(&utilisateur,"UNLOCK TABLES");
     mysql_close(&utilisateur);
     cout<<"bouh5"<<endl;
   }
@@ -1317,7 +1319,7 @@ void Table::modifBDD(int placeJ){
   }
 }
 bool Table::ajouterJetonTable(Spectateur* s,int& jeton){
-  for(int i=0;i<nbJMax;i++){
+  for(int i=0;i<NB_CHAISE;i++){
     if(joueurs[i]!=NULL){
       if(s->getNom()==joueurs[i]->getNom()){
 	return false;
@@ -1333,6 +1335,7 @@ bool Table::ajouterJetonTable(Spectateur* s,int& jeton){
   if(mysql_real_connect(&utilisateur,"venus","flucia","flucia","flucia",0,NULL,0)){
   //Chez jm
   //if(mysql_real_connect(&utilisateur,"localhost","root","azertySQL","pokerL3",0,NULL,0)){   
+    mysql_query(&utilisateur,"LOCK TABLES infoclients WRITE");
     mysql_query(&utilisateur,"SELECT * FROM infoclients");
 
         
@@ -1348,6 +1351,7 @@ bool Table::ajouterJetonTable(Spectateur* s,int& jeton){
     while(!joueurExiste && (row = mysql_fetch_row(result))){
       
       if(row[PSEUDO] == s->getNom()){
+	
 	joueurExiste=true;
       }
     }
@@ -1372,6 +1376,7 @@ bool Table::ajouterJetonTable(Spectateur* s,int& jeton){
       cout<<os<<endl;
       string requete="update infoclients set money='"+os.str()+"' where Username='"+s->getNom()+"'";
       mysql_query(&utilisateur,requete.c_str());
+      mysql_query(&utilisateur,"UNLOCK TABLES");
       mysql_close(&utilisateur);
       return true;
     }
@@ -1422,7 +1427,7 @@ void Table::erreur(){
     delete spectacteurs.back();
     spectacteurs.pop_back();
   }
-  for(int i=0;i<nbJMax;i++){
+  for(int i=0;i<NB_CHAISE;i++){
     if(joueurs[i]!=NULL)
       delete joueurs[i];
     
@@ -1493,7 +1498,7 @@ int Table::EssayerMain4CartesMilieu(int array[],int player)
 void Table::RemplissageJeuxMax()
 {
   cout<<"Debut RemplissagejeuxMax"<<endl;
-  for (int q=0;q<nbJMax;q++)
+  for (int q=0;q<NB_CHAISE;q++)
     {
       if(joueurs[q]!=NULL){
 	if (joueurs[q]->getValeurMain3() > joueurs[q]->getValeurMain4())
@@ -1534,7 +1539,7 @@ void Table::EvaluerMain2()
   int stack[10],k;
   int PointsCourant;
   
-  for (int q=0;q<nbJMax;q++){
+  for (int q=0;q<NB_CHAISE;q++){
     //joueurs[q].valeurMain4 = 0;
     if(joueurs[q]!=NULL){
       joueurs[q]->setValeurMain4(0);
@@ -1586,7 +1591,7 @@ void Table::EvaluerMain()
   int PointsCourant;
   
   cout<<"TESTE 0"<<endl;
-  for (int q=0;q<nbJMax;q++){
+  for (int q=0;q<NB_CHAISE;q++){
     if(joueurs[q]!=NULL){
       joueurs[q]->setValeurMain3(0);
       cout<<"TTTTTTEEEESSSTEE"<<endl;
@@ -1639,9 +1644,9 @@ void Table::SetClassementJoueurs()
   this->EvaluerMain2();
   this->RemplissageJeuxMax();
   //cout<<"HELLO world: "<<endl;
-  int tab_joueurs[nbJMax][2];
+  int tab_joueurs[NB_CHAISE][2];
   
-  for (int i=0;i<nbJMax;i++)
+  for (int i=0;i<NB_CHAISE;i++)
     {
 	  if(joueurs[i]!=NULL){
 	    tab_joueurs[i][0] = i;
@@ -1654,7 +1659,7 @@ void Table::SetClassementJoueurs()
     }
   
   cout<<"Detection de la main max"<<endl;
-  for (int i=0;i<nbJMax;i++)
+  for (int i=0;i<NB_CHAISE;i++)
 	{
 	  if(joueurs[i]!=NULL && !joueurs[i]->isFold() ){
 	    if (joueurs[i]->getValeurMain3() > joueurs[i]->getValeurMain4() )
@@ -1665,7 +1670,7 @@ void Table::SetClassementJoueurs()
 	}
   
   cout<<"remplissage tableau num_joueur_point"<<endl;
-  for (int i=0;i<nbJMax;i++)
+  for (int i=0;i<NB_CHAISE;i++)
     {
       if(joueurs[i]!=NULL && !joueurs[i]->isFold()){
 	  tab_joueurs[i][0] = i;
@@ -1674,9 +1679,9 @@ void Table::SetClassementJoueurs()
     }
   cout<<"fin remplissage tableau num_joueur_point"<<endl;
   int tmp[2];
-  for (int i=0;i<nbJMax;i++)
+  for (int i=0;i<NB_CHAISE;i++)
     {
-      for(int j=i+1;j<nbJMax;j++){
+      for(int j=i+1;j<NB_CHAISE;j++){
 	if(tab_joueurs[j][1] > tab_joueurs[i][1])
 	  {
 	    tmp[0] = tab_joueurs[i][0];
@@ -1688,7 +1693,7 @@ void Table::SetClassementJoueurs()
 	  }
       }
     }
-  for(int i=0;i<nbJMax;i++){
+  for(int i=0;i<NB_CHAISE;i++){
     cout<<"place: "<<tab_joueurs[i][0]<<" "<<tab_joueurs[i][1]<<endl;
   }
   cout<<"copie du tableau dans l'attribut classement"<<endl;

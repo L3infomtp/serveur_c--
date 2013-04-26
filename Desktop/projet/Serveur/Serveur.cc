@@ -356,6 +356,65 @@ void Serveur::actionClient(int placeVecteur){
   //4-Soit il quitte le jeu
   //5-Modif son profil
 }
+void Serveur::actionUtilisateur(int placeVecteur){
+  char recu[1024]="";
+  int taille=recv(tabClient[placeVecteur]->getDescClient(),recu,1024,0);
+  if(taille==0){
+    decoClient(placeVecteur);
+  }
+  else{
+    while(strlen(recu)!=0){
+      if(recu[0]=='R' && recu[1]=='a' && recu[2]=='f' && recu[3]=='r' && recu[4]=='T'){
+	envoieTable(tabClient[placeVecteur]->getDescClient());
+	strcpy(recu,recu+6);
+      }
+      else{
+	if(recu[0]=='M' && recu[1]=='o' && recu[2]=='d' && recu[3]=='i' && recu[4]=='f'){
+	  char modifChar[256]="";
+	  strcpy(recu,decompositionMessage(recu+6,modifChar,1));
+	  modifClient(modifChar,tabClient[placeVecteur]);
+	}
+	else{
+	  if(recu[0]=='T' && recu[1]=='c' && recu[2]=='h' && recu[3]=='a' && recu[4]=='t'){
+	    char buf[256]="Tchat&";
+	    strcpy(recu,getMessage(recu+6,buf+6));
+	    msgClient(buf);
+	  }
+	}
+      }
+    }
+  }
+}
+
+char* Serveur::decompositionMessage(char* recu,char* msg,int cpt){
+  int parcoursRecu=0;
+  while(cpt!=0){
+    msg[parcoursRecu]=recu[parcoursRecu];
+    if(recu[parcoursRecu]=='&'){
+      cpt--;
+    }
+    parcoursRecu++;
+  }
+  return recu+parcoursRecu;
+}
+
+char* Serveur::getMessage(char* recu,char* buf){
+  char tailleMessage[10]="";
+  int parcoursRecu=0;
+  while(recu[parcoursRecu]!='&'){
+    buf[parcoursRecu]=recu[parcoursRecu];
+    tailleMessage[parcoursRecu]=recu[parcoursRecu];
+    parcoursRecu++;
+  }
+  buf[parcoursRecu]='&';
+  parcoursRecu++;
+  int taille=atoi(tailleMessage); 
+  for(int i=0;i<taille;i++){
+    buf[parcoursRecu]=recu[parcoursRecu];
+    parcoursRecu++;
+  }
+  return recu+parcoursRecu;
+}
 
 void Serveur::decoClient(int placeVecteur){
     ///////Modifier selon les tables//////
@@ -370,7 +429,7 @@ void Serveur::decoClient(int placeVecteur){
 void Serveur::msgClient(char* tchat){
    cout<<tchat<<endl;
    for(int i=0;i<tailleVecteur;i++){
-     int envoi=send(tabClient[i]->getDescClient(),tchat,255,0);
+     int envoi=send(tabClient[i]->getDescClient(),tchat,256,0);
    }
  }   
  

@@ -73,6 +73,34 @@ class Serveur{
   */
   void actionClient(int);
   /**
+   *\fn void actionUtilisateur(int place)
+   *@brief Un client a envoyé une donnée
+   *Permet de recupérer l'action du client à la position 'place' dans la tables des clients.
+   \param place La position dans el tableau des clients de l'utilisateur ayant effecutué une action
+  */
+     
+  void actionUtilisateur(int);
+  /**
+   *\fn char* decompositionMessage(char* recu, char* buf, int nbSeparateur)
+   *@brief Decoupe le message recu
+   *Permet de découper un message par rapport à un caractère séparateur et un nombre de séparateur prédéfinie dans le protocole
+   \param recu Le message decoupé
+   \param buf Le messagge decoupé y est stocké
+   \param nbSeparateur Le nombre de caractère séparateur
+   *@return L'ancienne chaîne de caractère privé du message découpé
+  */
+  char* decompositionMessage(char*,char*,int);
+  /**
+   *\fn char* getMessage(char* recu, char* bufTchat)
+   *@brief Decoupe le message recu pour récuperer le message de chat
+   *Permer de découper un message par rapport à une taille donné dans celui-ci
+   \param recu Le message decoupé
+   \param buf Le message de chat y est stocké
+   *@return L'ancienne chaîne de caractère privé du message découpé
+  */
+
+  char* getMessage(char*, char*);
+  /**
    *\fn void decoClient(int place)
    *@brief Un client est parti
    *Permet de supprimer le client à la position 'place' dans le tableau des clients 

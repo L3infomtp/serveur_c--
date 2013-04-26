@@ -182,8 +182,13 @@ class Table{
     */
     void joueurQuitteTable(int);//Un joueur veut quitter la table pour la prochaine partie 
 
-
-
+    /**
+     *\fn void playerReturnTable(int place);
+     *@brief Le joueur est de retour après une absence
+     *Permet de remettre le joueur actif et de le laisser jouer par lui même
+     \param place La position du joueur dans le tableau des spectateurs 
+    */
+    void playerReturnTable(int);
 
 
 
@@ -236,92 +241,84 @@ class Table{
     void poserTurnRiver(int); //Pose Lla turn ou la river
             //Obtenir le nombre de point d'une main specifi� en parametre
 
-	 
-	/**
-	* \fn int ObtenirPointMain(carte main[])
-	* \brief Fonction qui calcul le nombre de points associés à une main de 5 cartes.
+    //Essayer la main avec les differentes combinaisons possible
+    
+    /**
+     * \fn int EssayerMain3CartesMilieu(int array[],int player)
+     * \brief Fonction qui essaye la main donnée.
+     *
+     * \param array tableau de valeur qui va nous permettre de choisir les differentes cartes du board
+     * \param player numero du joueur à traité
+     * \return le nombre de points correspondant à la main testé.
+     */
+    int EssayerMain3CartesMilieu(int[],int);
+    
+    //Evalue la main d'un joueur - combine avec EssayerMain
+    //deux methodes une qui va utilise EssayerMain3CartesMilieu et l'autre EssayerMain4CartesMilieu
+    /**
+     * \fn int EssayerMain4CartesMilieu(int array[],int player)
+     * \brief Fonction qui essaye la main donnée.
+     *
+     * \param array tableau de valeur qui va nous permettre de choisir les differentes cartes du board
+     * \param player numero du joueur à traité
+     * \return le nombre de points correspondant à la main testé.
+     */
+    int EssayerMain4CartesMilieu(int array[],int player);
+    /**
+     * \fn void RemplissageJeuxMax()
+     * \brief Fonction qui remplis les jeuxs maximun de chaque joueurs en fonction des différentes cartes du boards.
+     */
+    void RemplissageJeuxMax();
+    /**
+     * \fn void EvaluerMain2()
+     * \brief Fonction qui evalue la main des differents joueurs en essayant tte les combinaisons avec 4 cartes du boards et une des deux cartes de chaque joueur.
+     */
+    void EvaluerMain2();
+    //Evalue la main d'un joueur - combine avec EssayerMain
+    //deux methodes une qui va utilise EssayerMain3CartesMilieu et l'autre EssayerMain4CartesMilieu
+    
+    /**
+     * \fn void EvaluerMain()
+     * \brief Fonction qui evalue la main des differents joueurs en essayant tte les combinaisons avec 3 cartes du boards et les deux cartes des joueurs.
 	*
-	* \param main Main à traiter.
-	* \return le nombre de points correspondant à la main passé en paramètre.
 	*/
-        int ObtenirPointMain(Carte main[]);
-
-	//Evalue la main d'un joueur - combine avec EssayerMain
-	//deux methodes une qui va utilise EssayerMain3CartesMilieu et l'autre EssayerMain4CartesMilieu
-
-	/**
-	* \fn void EvaluerMain()
-	* \brief Fonction qui evalue la main des differents joueurs en essayant tte les combinaisons avec 3 cartes du boards et les deux cartes des joueurs.
-	*
-	*/
-	void EvaluerMain();
-
-	/**
-	* \fn void EvaluerMain2()
-	* \brief Fonction qui evalue la main des differents joueurs en essayant tte les combinaisons avec 4 cartes du boards et une des deux cartes de chaque joueur.
-	*/
-	void EvaluerMain2();
-	//Essayer la main avec les differentes combinaisons possible
-	
-	/**
-	* \fn int EssayerMain3CartesMilieu(int array[],int player)
-	* \brief Fonction qui essaye la main donnée.
-	*
-	* \param array tableau de valeur qui va nous permettre de choisir les differentes cartes du board
-	* \param player numero du joueur à traité
-	* \return le nombre de points correspondant à la main testé.
-	*/
-	
-	int EssayerMain3CartesMilieu(int[],int);
-
-	
-	/**
-	* \fn int EssayerMain3CartesMilieu(int array[],int player)
-	* \brief Fonction qui essaye la main donnée.
-	*
-	* \param array tableau de valeur qui va nous permettre de choisir les differentes cartes du board
-	* \param player numero du joueur à traité
-	* \return le nombre de points correspondant à la main testé.
-	*/
-	int EssayerMain4CartesMilieu(int array[],int player);
-	
-	//Utilisé pour test
-	void test();
- 
-	//Evalue les main , remplis les jeux max et remplis finalement le classement des joueurs
-
-	
-	/**
-	* \fn void SetClassementJoueurs()
-	* \brief Fonction qui remplis le classement des joueurs en fonction de leurs nombre de points.
-	*/
-	void SetClassementJoueurs();
-
-	/**
-	* \fn void RemplissageJeuxMax()
-	* \brief Fonction qui remplis les jeuxs maximun de chaque joueurs en fonction des différentes cartes du boards.
-	*/
-	void RemplissageJeuxMax();
-
-
-
-	
-        /**
+    void EvaluerMain();
+    //Evalue les main , remplis les jeux max et remplis finalement le classement des joueurs
+    
+    
+    /**
+     * \fn void SetClassementJoueurs()
+     * \brief Fonction qui remplis le classement des joueurs en fonction de leurs nombre de points.
+     */
+    void SetClassementJoueurs();
+    
+    /**
+     * \fn int ObtenirPointMain(carte main[])
+     * \brief Fonction qui calcul le nombre de points associés à une main de 5 cartes.
+     *
+     * \param main Main à traiter.
+     * \return le nombre de points correspondant à la main passé en paramètre.
+     */
+    int ObtenirPointMain(Carte main[]);
+    
+    //Utilisé pour test
+    void test();
+    /**
      *\fn int distribuerLepot()
      *@brief Distribue le pot
      *Permet de distribuer le pot selon les gagnants et perdant. 
      *@return Le reste du pot qu'on ne peut pas partager 
      */
-	int distribuerLePot(); //Distribue le pot 
-        /**
-	 *\fn void emporteLePot()
+    int distribuerLePot(); //Distribue le pot 
+    /**
+     *\fn void emporteLePot()
      *@brief Remporte la totalité du pot quand il ne reste que un seul joueur
      */
     void emporteLePot(); // Il reste que un joueur. Il remporte tous le pot
-        /**
+    /**
      *\fn void nettoieTable()
      *@brief Réintialise la table.
-    */
+     */
     void nettoieTable(); //nettoie la table
 
   
@@ -459,9 +456,32 @@ class Table{
    *@brief Un Spectateur ou un joueur en position 'place' a envoyé un message
   */
   void actionSpecJoueur(int);//Un joueur ou un spectateur à envoyer un paquet au serveur  
+  /**
+   *\fn void actionUtilisateur(int place)
+   *@brief Un client a envoyé une donnée
+   *Permet de recupérer l'action du client à la position 'place' dans la tables des clients.
+   \param place La position dans el tableau des clients de l'utilisateur ayant effecutué une action
+  */
   void actionUtilisateur(int); 
+    /**
+   *\fn char* decompositionMessage(char* recu, char* buf, int nbSeparateur)
+   *@brief Decoupe le message recu
+   *Permet de découper un message par rapport à un caractère séparateur et un nombre de séparateur prédéfinie dans le protocole
+   \param recu Le message decoupé
+   \param buf Le messagge decoupé y est stocké
+   \param nbSeparateur Le nombre de caractère séparateur
+   *@return L'ancienne chaîne de caractère privé du message découpé
+  */
   char* decompositionMessage(char*,char*,int);
-
+  /**
+   *\fn char* getMessage(char* recu, char* bufTchat)
+   *@brief Decoupe le message recu pour récuperer le message de chat
+   *Permer de découper un message par rapport à une taille donné dans celui-ci
+   \param recu Le message decoupé
+   \param buf Le message de chat y est stocké
+   *@return L'ancienne chaîne de caractère privé du message découpé
+  */
+  char* getMessage(char* recu, char* buf);
   /**
    *\fn bool convertirCharDeJoueur(char* message, Spectateur* s, int& place, int jeton)
    *@brief Un spectateur veut devenir joueur

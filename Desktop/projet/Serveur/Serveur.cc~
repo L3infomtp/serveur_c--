@@ -281,8 +281,8 @@ void Serveur::accepterClient(){
 	tailleVecteur++;
 	char buffer[2048]="";
 	convertionClientChar(buffer,cl);
-	convertionTableChar(buffer);
-	cout<<buffer<<endl;
+	//convertionTableChar(buffer);
+	//cout<<buffer<<endl;
 	int envoie=send(cl->getDescClient(),buffer,2048,0);
 
 	if(envoie==-1){
@@ -340,9 +340,10 @@ void Serveur::actionClient(int placeVecteur){
       }
       else{
 	if(recuClient[0]=='R' && recuClient[1]=='a' && recuClient[2]=='f' && recuClient[3]=='r' && recuClient[4]=='T'){
-	  char buffer[300];
-	  convertionTableChar(buffer);
-	  send(tabClient[placeVecteur]->getDescClient(),buffer,300,0);
+	  envoieTable(tabClient[placeVecteur]->getDescClient());
+	  //char buffer[300];
+	  //convertionTableChar(buffer);
+	  //send(tabClient[placeVecteur]->getDescClient(),buffer,300,0);
 	  return;
 	}
       }
@@ -695,6 +696,30 @@ void Serveur::convertionTableChar(char* buffer){
     sprintf(miseChar,"%d",tabTable[i].getMiseDep());
     strcat(buffer,miseChar);
     strcat(buffer,separateur);
+  }
+}
+void Serveur::envoieTable(int desc){
+  for(int i=0;i<tabTable.size();i++){
+    char buffer[100]="TInfo&";
+    strcat(buffer,tabTable[i].getNomTable().c_str());
+    strcat(buffer,separateur);
+    char portChar[10]="";
+    sprintf(portChar,"%d",tabTable[i].getPort());
+    strcat(buffer,portChar);
+    strcat(buffer,separateur);
+    char nbJChar[10]="";
+    sprintf(nbJChar,"%d",tabTable[i].getNbJ());
+    strcat(buffer,nbJChar);
+    strcat(buffer,separateur);
+    char nbJMax[10]="";
+    sprintf(nbJMax,"%d",tabTable[i].getNbJMax());
+    strcat(buffer,nbJMax);
+    strcat(buffer,separateur);
+    char miseChar[20]="";
+    sprintf(miseChar,"%d",tabTable[i].getMiseDep());
+    strcat(buffer,miseChar);
+    strcat(buffer,separateur);
+    send(desc,buffer,100,0);
   }
 }
 /**********************************************************************************************************************************************************************************************************************************************/

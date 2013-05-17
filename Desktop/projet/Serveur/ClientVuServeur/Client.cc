@@ -5,21 +5,21 @@ using namespace std;
 Client::Client(){
   descClient=0;
   nom="";
-  argent=0.0;
+  argent=0;
 }
 Client::Client(int desc){
   descClient=desc;
   nom="";
-  argent=0.0;
+  argent=0;
 }
-Client::Client(int desc, string nomClient,float argentReel){
+Client::Client(int desc, string nomClient,int argentReel){
   descClient=desc;
   nom=nomClient;
   argent=argentReel;
 }
 Client::Client(int desc,
 	       string nom,
-	       float argent,
+	       int argent,
 	       string email,
 	       string dOB,
 	       string gender,
@@ -48,7 +48,7 @@ Client::Client(int desc,
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////Assceseurs///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 int Client::getDescClient()const{return descClient;}
 string Client::getNom()const{return nom;}
-float Client::getArgent()const{return argent;}
+int Client::getArgent()const{return argent;}
 string Client::getEmail()const{return email;}
 string Client::getDOB()const{return dOB;}
 string Client::getGender()const{return gender;}
@@ -59,7 +59,7 @@ string Client::getCity()const{return city;}
 string Client::getZipCode()const{return zipCode;}
 string Client::getCountry()const{return country;}
 
-void Client::setArgent(const float argent){this->argent=argent;}
+void Client::setArgent(const int argent){this->argent=argent;}
 void Client::setEmail(const string email){this->email=email;}
 void Client::setDOB(const string dOB){this->dOB=dOB;}
 void Client::setGender(const string gender){this->gender=gender;}

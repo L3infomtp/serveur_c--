@@ -433,6 +433,13 @@ class Table{
    *Permet d'envoyer les cartes qui sont au milieu à partir de la position 'positionPremierCarteAEnvoyer' et le prochain à miser en position 'placeNext'
   */
   void envoyerBoard(int,int);
+  /**
+   *\ void sendCartes();
+   *@brief Envoie les cartes de tous les joueurs non fold
+   *Permet d'envoyer à tous les utilisateurs les mains de chaque joueur de la table qui n'ont pas passé
+  */
+
+  void sendCartes();
   
   /**
    *\fn void gagnantPerdantSomme(int place,int jeton)

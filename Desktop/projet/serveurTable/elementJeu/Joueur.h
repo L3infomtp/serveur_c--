@@ -27,24 +27,24 @@ class Joueur:public Spectateur{
   int pot; /** Indique la valeur du gain maximal possible sur le pot*/
   int nbJPot; //Plus utilisé.
 
-      Carte cartesMax[5]; /* Contient la combinaison des 5emes meilleurs cartes avec flop + cartes */
+  Carte cartesMax[5]; /* Contient la combinaison des 5emes meilleurs cartes avec flop + cartes */
 
-    /* Contient la valeur de la main max avec 4 cartes du board + 1 carte du jeux du joueur */
-    int valeurMain4;
+  /* Contient la valeur de la main max avec 4 cartes du board + 1 carte du jeux du joueur */
+  int valeurMain4;
+  
+  /* contient la valeur de la main max avec 3 cartes du board + les deux cartes du joueur */
+  int valeurMain3;
 
-    /* contient la valeur de la main max avec 3 cartes du board + les deux cartes du joueur */
-    int valeurMain3;
+  /* contient la valeur max , ce sera soit valeurMain3 soit valeurMain4 */
+  int valeurMainMax;
 
-    /* contient la valeur max , ce sera soit valeurMain3 soit valeurMain4 */
-    int valeurMainMax;
+  /* contient les 4 meilleurs cartes du board qui s'associe avec une carte du joueur */
+  Carte mainMax4[4];
+  /*contient les 3 meilleurs cartes du board qui s'associe avec le jeux du joueur */
+  Carte mainMax3[3];
 
-    /* contient les 4 meilleurs cartes du board qui s'associe avec une carte du joueur */
-    Carte mainMax4[4];
-    /*contient les 3 meilleurs cartes du board qui s'associe avec le jeux du joueur */
-    Carte mainMax3[3];
-
-   /*contient la carte max du joueur pour laquelle la combinaison des 4 cartes du board est la meilleur */
-    Carte carteMax;
+  /*contient la carte max du joueur pour laquelle la combinaison des 4 cartes du board est la meilleur */
+  Carte carteMax;
   
 
  public:

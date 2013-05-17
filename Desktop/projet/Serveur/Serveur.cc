@@ -363,7 +363,7 @@ void Serveur::actionUtilisateur(int placeVecteur){
     decoClient(placeVecteur);
   }
   else{
-    while(strlen(recu)!=0){
+    while(strlen(recu)>0){
       if(recu[0]=='R' && recu[1]=='a' && recu[2]=='f' && recu[3]=='r' && recu[4]=='T'){
 	envoieTable(tabClient[placeVecteur]->getDescClient());
 	strcpy(recu,recu+6);
@@ -668,7 +668,7 @@ void Serveur::convertionClientChar(char* buffer,Client* cl){
   buffer[taille]='&';
   taille++;
   
-  char money[64]=""; sprintf(money,"%f",cl->getArgent());
+  char money[64]=""; sprintf(money,"%d",cl->getArgent());
   int tailleArgent=strlen(money);
   strncpy(buffer+taille,money,tailleArgent);
   taille+=tailleArgent;
@@ -758,8 +758,10 @@ void Serveur::convertionTableChar(char* buffer){
   }
 }
 void Serveur::envoieTable(int desc){
+  char buffer[2024]="";
+  char type[]="TInfo&";
   for(int i=0;i<tabTable.size();i++){
-    char buffer[100]="TInfo&";
+    strcat(buffer,type);
     strcat(buffer,tabTable[i].getNomTable().c_str());
     strcat(buffer,separateur);
     char portChar[10]="";
@@ -778,7 +780,8 @@ void Serveur::envoieTable(int desc){
     sprintf(miseChar,"%d",tabTable[i].getMiseDep());
     strcat(buffer,miseChar);
     strcat(buffer,separateur);
-    send(desc,buffer,100,0);
+    
   }
+  send(desc,buffer,2024,0);
 }
 /**********************************************************************************************************************************************************************************************************************************************/

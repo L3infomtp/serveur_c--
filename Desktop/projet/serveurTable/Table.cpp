@@ -27,8 +27,13 @@
 #define ZIPCODE 10 //Place du code postale dans la base de donnée
 #define COUNTRY 11 //Place du pays dans la base de donnée 
 #define NB_CHAISE 10 //Nombre de chaise 
-/////////////////////////////////////Variable globale//////////////////////////////
+////////////////////////////////////Variable globale//////////////////////////////
 const char separateur[2]="&"; //Caractère séparateur
+const string hostName="venus"; 
+const string pseudo="flucia";
+const string password="flucia";
+const string bdd="flucia";
+//const string 
 /****************************************************************************************/
 /////////////////////////////////////Constructeur////////////////////////////////////
 Table::Table(int maxJ, int miseDep){ 
@@ -73,52 +78,52 @@ Table::Table(int maxJ, int miseDep){
 Table::Table(int descE,int descR,int maxJ, int miseDep){
   cout<<"constructeur"<<endl;
   //Partie constructeur reseau
-  descEnvoie=descE;
-  descRecu=descR;
-  isServeur=true;
-  descMax=descRecu;
-  brPub = Sock(SOCK_STREAM,(short)0,0);
-  if(brPub.good())
-    descTable = brPub.getsDesc();
+  descEnvoie=descE; //descripteur du tube d'envoie 
+  descRecu=descR; // descripteur du tube reçu
+  isServeur=true; // vrai quand le serveur est lancé 
+  descMax=descRecu; // détermine le descripteur max à surveiller 
+  brPub = Sock(SOCK_STREAM,(short)0,0); // creer le boite reseau de la table 
+  if(brPub.good()) 
+    descTable = brPub.getsDesc(); // si la boite reseau a bien été crée alors on détermine le descripteur de la table
   else{
     cout<<"Probleme desc"<<endl;
-    exit(1);
+    exit(1); // sinon détruis la table 
   }
-  if(listen(descTable,10) == -1){
+  if(listen(descTable,10) == -1){ // crée la file d'attente 
     cout<<"erreur de creation Boite Publique"<<endl;
     exit(1);
   }
   char portChar[20]="";
-  sprintf(portChar,"%d",brPub.returnPort());
-  write(descEnvoie,portChar,20);
-  if(descTable>descMax)
-    descMax=descTable;
+  sprintf(portChar,"%d",brPub.returnPort()); // recupere le numero de port de la table 
+  write(descEnvoie,portChar,20); // envoie le numero de port au serveur 
+  if(descTable>descMax) // determine si le descripteur max à surveiller n'est pas à modifier
+    descMax=descTable;  
   //Partie constructeur des joueurs
-  nbJoueur=0;
-  nbJMax = maxJ;
-  joueurEnListe=0;
-  nbJAllIn=0;
-  prochainAMiser=0;
-  dernierAMiser=0;
-  joueurs=new Joueur*[NB_CHAISE];
+  nbJoueur=0; // Initialise nbJoueur à 0 (Pas de joueur)
+  nbJMax = maxJ; // Initialise le nombre de joueur max possible sur cette table 
+  joueurEnListe=0; // Initialise joueurEnListe à 0 
+  nbJAllIn=0; // Initialise nbJAllIn à 0
+  prochainAMiser=-1; // Initialise prochainAMiser à 0
+  dernierAMiser=-1; // Initialise dernierAMiser à 0
+  joueurs=new Joueur*[NB_CHAISE]; // crée le tableau de joueur
   for(int i=0;i<NB_CHAISE;i++){
     joueurs[i]=NULL;
   }
-  actif=new bool[NB_CHAISE];
+  actif=new bool[NB_CHAISE]; // crée le tableau de joueur actif 
   for(int i=0;i<NB_CHAISE;i++){
     actif[i]=false;
   }
   //Partie constructeur poker
-  partieEnCours=false;
-  dealer=-1;
-  petiteBlind=-1;
-  grosseBlind=-1;
-  aJouer=false;
-  miseMin = miseDep;
-  mise = miseMin;
-  pot = 0;
-  instanceAllIn=false;
-  classementJoueurs=new int*[NB_CHAISE];
+  partieEnCours=false; // initialise partieEnCours à faux 
+  dealer=-1; // initialise le dealer à -1
+  petiteBlind=-1; // initialise la petiteBlind à -1
+  grosseBlind=-1; // initialise la grosseBlind à -1
+  aJouer=false; // initialise aJoueur à faux 
+  miseMin = miseDep; // initialise miseMin à miseDep
+  mise = miseMin; // initialise mise à miseMin
+  pot = 0; // initialise pot à 0
+  instanceAllIn=false; // initialise instanceAllIn à false
+  classementJoueurs=new int*[NB_CHAISE]; // crée le tableau du classementJoueurs
   for(int i=0;i<NB_CHAISE;i++){
     classementJoueurs[i]=new int[2];
   }
@@ -139,58 +144,58 @@ Table::~Table(){
     delete[] classementJoueurs[i];
   }
   delete[] classementJoueurs;
-  delete joueurs;
-  delete actif;
+  delete[] joueurs;
+  delete[] actif;
 }
 /***********************************************************************************/
 /////////////////////////////////                                        //////////////////
 ////////////////////////////////Ajouter/Suprimer/Verifier spec ou joueur//////////////////////
 ///////////////////////////////                                        //////////////////
 void Table::addSpectateur(){
-  struct sockaddr_in brCV;
-  socklen_t lgbrCV=sizeof(struct sockaddr_in);
-  int descBrCv = accept(descTable,(struct sockaddr *)&brCV, &lgbrCV);
+  struct sockaddr_in brCV; // crée la boite réseau virtuel 
+  socklen_t lgbrCV=sizeof(struct sockaddr_in); 
+  int descBrCv = accept(descTable,(struct sockaddr *)&brCV, &lgbrCV); // accepte un utilisateur sur la table et détermine son descripteur
   if(descBrCv==-1)
     cout<<"N'a pas accept�e le client"<<endl;
   else{
-    char nom[52]="";
-    int messCli = recv(descBrCv,nom,52,0);
+    char nom[52]=""; // Va conternir le message de l'utilisateur  
+    int messCli = recv(descBrCv,nom,52,0);  // recupère le message envoyé par l'utilisateur 
     cout<<"Le nouveau client est:"<<nom<<endl;
     if(messCli!=0){
       //Partie constructeur du nouveau spectateur
       nom[messCli]='\0';
-      string pseudo=string(nom);
-      Spectateur *s=new Spectateur(descBrCv,pseudo);
-      spectacteurs.push_back(s);
+      string pseudo=string(nom); // transforme le char* en string
+      Spectateur *s=new Spectateur(descBrCv,pseudo); // crée le nouveau Spectateur 
+      spectacteurs.push_back(s); // rajoute le spectateur dans le tableau des spectateurs
       //Partie reseau
-      convertirTableEnChar(s);
+      convertirTableEnChar(s); // envoie au spectateur les informations de la table
       for(int i=0;i<NB_CHAISE;i++){
 	if(joueurs[i]!=NULL && actif[i]==false && joueurs[i]->getNom()==s->getNom()){
-	  redonnerSonJeu(i,s);
+	  redonnerSonJeu(i,s); // si il est deja en jeu, on lui envoie son jeu
 	}
       }
       if(descBrCv>descMax)
-	descMax=descBrCv;
+	descMax=descBrCv; // regarde si c'est lui qui à le plus grand déscripteur
     }
     else{
       cout<<"Probleme recv client"<<endl;
-      close(descBrCv);
+      close(descBrCv); // ferme la br du spectateur en cas de problème
     }
   }
 }
 void Table::addJoueur(Spectateur* s, char* aConvertir){
-  int place=-1;
-  int jeton=-1;
-  if(isServeur && convertirCharDeJoueur(aConvertir,s,place,jeton)){
-    Joueur* j = new Joueur(*s, jeton);
-    cout<<"Le nouveau joueur est: "<<j->getNom()<<endl;
-    joueurs[place] = j;
+  int place=-1; // initialise la place du nouveau joueur
+  int jeton=-1; // initialise les jetons du nouveau joueur 
+  if(isServeur && convertirCharDeJoueur(aConvertir,s,place,jeton)){ // regarde si le joueur vérifie certaine condition
+    Joueur* j = new Joueur(*s, jeton); // crée le joueur
+    cout<<"Le nouveau joueur est: "<<j->getNom()<<endl; 
+    joueurs[place] = j; // mets le nouveau joueur dans le tableau des joueurs 
     if(partieEnCours)
-      actif[place]=true;
+      actif[place]=true; // si la partie est en cours alors on le met en actif pour qu'il ne soit pas suprimé à la fin de la partie
     else
-      actif[place]=false;
-    nbJoueur++;
-    stringstream ss;
+      actif[place]=false; // si la partie n'est pas en cours, on le met en innactif
+    nbJoueur++; // augmente le nombre de joueur 
+    stringstream ss; 
     ss<<place;
     string newJoueur = "NewJo";
     newJoueur+=separateur;
@@ -209,56 +214,63 @@ void Table::addJoueur(Spectateur* s, char* aConvertir){
     cout<<newJoueur<<endl;
     char nJ[100] = "";
     strcpy(nJ,newJoueur.c_str());
-    for(int i=0; i<spectacteurs.size();i++){
+    for(int i=0; i<spectacteurs.size();i++){ // préviens tout le monde qu'il y a un nouveau joueur 
       send(spectacteurs[i]->getDesc(),nJ, strlen(nJ),0);
     }
-    char jEnPlus[]="NewJo&";
-    write(descEnvoie,jEnPlus,10);
+    char jEnPlus[]="NewJo&"; 
+    write(descEnvoie,jEnPlus,10); // préviens le serveur principal qu'un nouveau joueur est arrivé
     if(!partieEnCours && nbJoueur>1){
       partieEnCours=true;
-      lancerPartie();
+      lancerPartie(); // si il y a plus de un joueur, on lance la partie
     }
     else{
       if(!partieEnCours){
 	//prochainAMiser=place;
-	dealer=place;
+	dealer=place; // si il y a pas de partie, on met le nouveau joueur en dealer
       }
     }
   }
 }
 void Table::removeSpectateur(int placeSpec){
-  int specDesc=spectacteurs[placeSpec]->getDesc();
-  for(int i=0;i<NB_CHAISE;i++){
-    //Implémenter la méthode getDesc de la classe joueur!!!!!!!
-    cout<<"C'est un joueur"<<endl;
+  int specDesc=spectacteurs[placeSpec]->getDesc(); // determine le descripteur du spectateur qu'on doit supprimer
+  for(int i=0;i<NB_CHAISE;i++){ // on vérifie si il est joueur ou pas
+    
     if(joueurs[i]!=NULL && specDesc==joueurs[i]->getDesc()){
+	cout<<"C'est un joueur"<<endl;
+   // if(joueurs[i]!=NULL && spectacteurs[placeSpec]->getNom()==joueurs[i]->getNom()){
       cout<<"Le joueur est parti"<<endl;
-      removeJoueur(i);
+      removeJoueur(i); // suprime le joueur correspondant
     }
   }
   cout<<"Un spec est parti"<<endl;
-  close(specDesc);
-  delete spectacteurs[placeSpec];
-  spectacteurs.erase(spectacteurs.begin()+placeSpec);
+  close(specDesc); // on ferme la boite reseau de ce spectateur
+  delete spectacteurs[placeSpec]; 
+  spectacteurs.erase(spectacteurs.begin()+placeSpec); // on l'enleve du tableau des spectateurs
 }
 void Table::removeJoueur(int placeJ){
-  if(actif[placeJ]){
-    cout<<"la"<<endl;
-    actif[placeJ]=false;
-    close(joueurs[placeJ]->getDesc());
+  if(actif[placeJ]){ // si c'est un joueur actif(c'est à dire en cour de partie)
+    cout<<"la "<<placeJ<<endl;
+    actif[placeJ]=false; // on le rends inactif
+     char absentChar[10]="Absen&";
+     char placeChar[3]="";
+     sprintf(placeChar,"%d",placeJ);
+     strcat(absentChar,placeChar);
+     strcat(absentChar,separateur);
+     messageSpec(absentChar,10); // on previens que un joueur est inactif
+     //close(joueurs[placeJ]->getDesc()); // useless...?
   }
   else{
     cout<<"OuLa"<<endl;
-    modifBDD(placeJ);
-    nbJoueur--;
-    delete joueurs[placeJ];
-    joueurs[placeJ]=NULL;
-    envoieQuitteTable(placeJ);
-    if(nbJoueur==0){
-      dealer=-1;
+    modifBDD(placeJ); // remets en place la nouvealle somme d'argent du joueur
+    nbJoueur--; // diminue le nombre de joueur
+    delete joueurs[placeJ]; // supprime le joueur
+    joueurs[placeJ]=NULL; // remets la place du joueur à vide
+    envoieQuitteTable(placeJ); // préviens qu'un joueur viens de quitter la table
+    if(nbJoueur==0){ // verifie si il y a encore un joueur pour être dealer
+      dealer=-1; // pas de dealer 
     }
     else{
-      if(placeJ==dealer){
+      if(placeJ==dealer){ // cherche le nouveau dealer 
 	int place=placeJ+1;
 	do{
 	  if(joueurs[place]!=NULL){
@@ -274,14 +286,15 @@ void Table::removeJoueur(int placeJ){
       }
     }
     char jEnMoins[]="QuitJ&";
-    write(descEnvoie,jEnMoins,10);
+    write(descEnvoie,jEnMoins,10); // previens le serveur qu'un joueur est partie
     cout<<"Joueur supprimé succés"<<endl;
   }
 }
 void Table::removeJNoMoney(){
   for(int i=0;i<NB_CHAISE;i++){
     if(joueurs[i]!=NULL && joueurs[i]->getJetonDebutDeManche()==0){
-      removeJoueur(i);
+      actif[i]=false;
+      removeJoueur(i); // supprime un joueur si il n'a plus d'argent 
     }
   }
 }
@@ -290,7 +303,7 @@ void Table::removeJNoMoney(){
   for(int i=0;i<NB_CHAISE;i++){
     if(joueurs[i]!=NULL && (!actif[i] || !joueurs[i]->isActif())){
       actif[i]=false;
-      removeJoueur(i);
+      removeJoueur(i); // supprime un joueur inactif ou qui à demandé de partir
     }
   }
 }
@@ -313,7 +326,7 @@ void Table::run(){
     for(int i=0;i<spectacteurs.size();i++){
       FD_SET(spectacteurs[i]->getDesc(),&desc_en_lect);
     }
-    int sel=select(descMax+1,&desc_en_lect,NULL,NULL,NULL);
+    int sel=select(descMax+1,&desc_en_lect,NULL,NULL,NULL); // attends une action du serveur ou des utilisateurs 
     cout<<"On a reçu un paquet "<<brPub.returnPort()<<endl;
     //Si erreur au select
     if(sel==-1){
@@ -331,6 +344,7 @@ void Table::run(){
 	    actionServeur();
 	}
 	else{
+	// hum... faudrait t'il pas vérifier si c'est pas plusiers utilisateurs qui ont déclanché le select?
 	  //Si c'est un client à l'origine de la sortie du select
 	  int parcourSpec=0;
 	  bool sortieParcours=true;
@@ -350,31 +364,32 @@ void Table::run(){
 }
 void Table::lancerPartie(){
   while(isServeur && nbJoueur>1){
-    cout<<"let's go pour le poker"<<endl;
-    preparerJoueur();
-    petiteBlind=smallBlind();
-    grosseBlind=bigBlind(petiteBlind);
+    cout<<"let's go pour le poker"<<endl; // lance une partie 
+    preparerJoueur(); // modfie les attributs des joueurs 
+    petiteBlind=smallBlind(); // détermine la petite Blind 
+    grosseBlind=bigBlind(petiteBlind); // détermine la grosse blind 
     cout<<"La petiteBlind est: "<<petiteBlind<<endl;
     cout<<"La grosseBlind est: "<<grosseBlind<<endl;
 
-    joueurEnListe=nbJoueur;
+    joueurEnListe=nbJoueur; // initialise le nombre de joueur en liste pour cette partie 
     cout<<"Parti lancé"<<endl;
-    distribuer();
-    joueurEnListe=nbJoueur;
     cout<<"Le nombre de joueur est de : " <<joueurEnListe<<endl;
-    mise=miseMin;
-    prochainAMiser=aMiser(grosseBlind);
+    mise=miseMin; // la premiere mise correspond à la mise min 
+    prochainAMiser=aMiser(grosseBlind); // determine le prochain à devoir miser 
     cout<<"Le premier à miser est: "<<prochainAMiser<<endl;
-    lancerPartieReseau(petiteBlind,grosseBlind);
+    lancerPartieReseau(petiteBlind,grosseBlind); // on préviens qu'une partie se lance 
+    sleep(1); 
+    distribuer(); // on distribue le jeu
+    sleep(2);
     if(joueurEnListe==1 || tourDeMise(2)){
       cout<<"On distribue le pot"<<endl;
-      newManche();
-      emporteLePot();
-      pot=0;
+      newManche(); 
+      emporteLePot(); // un seul joueur encore en liste
+      pot=0; // remet le pot à 0
     }
     else{
-      sleep(1);
-      newManche();
+      sleep(2);
+      newManche(); 
       poserFlop(prochainAMiser);
       if(joueurEnListe==1 || tourDeMise(1)){
 	cout<<"On distribue le pot"<<endl;
@@ -384,7 +399,7 @@ void Table::lancerPartie(){
       }
       else{
 	newManche();
-	sleep(1);
+	sleep(2);
 	poserTurnRiver(prochainAMiser);
 	if(joueurEnListe==1 || tourDeMise(1)){
 	  newManche();
@@ -392,7 +407,7 @@ void Table::lancerPartie(){
 	  pot =0;
 	}
 	else{
-	  sleep(1);
+	  sleep(2);
 	  newManche();
 	  poserTurnRiver(prochainAMiser);
 	  if(joueurEnListe==1 || tourDeMise(1)){
@@ -420,6 +435,7 @@ void Table::lancerPartie(){
 	}
       }
     }
+    sleep(5);
     cout<<"Le poker est fini, c'était une très belle partie"<<endl;
     cout<<"On regarde si on peux relancer une partie"<<endl;
     verifierPresenceJoueur();
@@ -536,7 +552,7 @@ void Table::playerReturnTable(int place){
       actif[i]=true;
       char retourChar[10]="Retou&";
       char placeChar[3]="";
-      sprintf(placeChar,"%d",place);
+      sprintf(placeChar,"%d",i);
       strcat(retourChar,placeChar);
       strcat(retourChar,separateur);
       messageSpec(retourChar,10);
@@ -555,12 +571,8 @@ bool Table::tourDeMise(int verificateur){
   if(nbJAllIn+1==joueurEnListe || nbJAllIn==joueurEnListe){
     return false;
   }
-  if(verificateur==1){
-    dernierAMiser=prochainAMiser;
-  }
-  if(verificateur==2){
-    dernierAMiser=grosseBlind;  
-  }
+  dernierAMiser=prochainAMiser;
+ 
   aJouer=false;
   while(!aJouer){
     methodeMiser();
@@ -619,7 +631,7 @@ void Table::methodeMiser(){
 	      }
 	    }
 	  }
-	}
+ 	}
       }
     }
     cout<<"sortie methodeMiser()"<<endl;
@@ -673,7 +685,7 @@ void Table::poserTurnRiver(int placeNext){
 
 int Table::EssayerMain3CartesMilieu(int array[],int player)
 {
-  cout<<"Debut EssayerMain3CartesMilieu"<<endl;
+  //Debut EssayerMain3CartesMilieu
 	Carte mains[5];
 
          for (int i=1;i<4;i++)
@@ -684,13 +696,12 @@ int Table::EssayerMain3CartesMilieu(int array[],int player)
              //   mains[i+3] = joueurs[player].cartes[i];
 		mains[i+3] = joueurs[player]->getCartes(i);
 	  }
-	 cout<<"fin EssayerMain3CartesMilieu"<<endl;
+	 //fin EssayerMain3CartesMilieu
          return ObtenirPointMain(mains);
 }
 
 int Table::EssayerMain4CartesMilieu(int array[],int player)
 {
-  cout<<"Debut EssayeMain4CartesMilieu"<<endl;
 
 	Carte mains[5];
 	int ptC1=0;
@@ -720,14 +731,13 @@ int Table::EssayerMain4CartesMilieu(int array[],int player)
 	     //joueurs[player].carteMax = joueurs[player].cartes[1];
 	     return ptC2;
 	   }
-	 cout<<"Fin EssayerMain4CarteMilieu"<<endl;
+	
 }
 
 
 
 void Table::RemplissageJeuxMax()
 {
-  cout<<"Debut RemplissagejeuxMax"<<endl;
   for (int q=0;q<NB_CHAISE;q++)
     {
       if(joueurs[q]!=NULL){
@@ -756,7 +766,6 @@ void Table::RemplissageJeuxMax()
 	  }
       }
     }
-  cout<<"Fin RemplissagejeuxMax"<<endl;
 }
 
 
@@ -765,7 +774,6 @@ void Table::RemplissageJeuxMax()
 // Elle remplis l'attribut valeurMain4 qui contiendra le nombre de point maximun que le joueur peut avoir ainsi que mainMax4 qui contiendra les 4 meilleurs cartes pour ce nombre de points
 void Table::EvaluerMain2()
 {
-  cout<<"Debut Main2"<<endl;
   int stack[10],k;
   int PointsCourant;
   
@@ -807,7 +815,6 @@ void Table::EvaluerMain2()
       }
     }
   }
-  cout<<"Fin EvaluerMain2"<<endl;
 }
 
 
@@ -816,20 +823,16 @@ void Table::EvaluerMain2()
 // Elle remplis l'attribut valeurMain3 qui contiendra le nombre de point maximun que le joueur peut avoir ainsi que mainMax3 qui contiendra les 3 meilleurs cartes pour ce nombre dvector<int>e points
 void Table::EvaluerMain()
 {
-  cout<<"Debut EvaluerMain()"<<endl;
+
   int stack[10],k;
   int PointsCourant;
   
-  cout<<"TESTE 0"<<endl;
   for (int q=0;q<NB_CHAISE;q++){
     if(joueurs[q]!=NULL){
       joueurs[q]->setValeurMain3(0);
-      cout<<"TTTTTTEEEESSSTEE"<<endl;
       if (!joueurs[q]->isFold()){
-	cout<<"TESTE 00"<<endl;
 	stack[0]=-1; /* -1 is not considered as part of the set */
 	k = 0;
-	cout<<"TESTE 1"<<endl;
 	while(1){
 	  if (stack[k]<4){
 	    stack[k+1] = stack[k] + 1;
@@ -845,7 +848,6 @@ void Table::EvaluerMain()
 	    break;
 	  
 	  if (k==3){
-	    cout<<"TESTE 2"<<endl;
 	    PointsCourant = EssayerMain3CartesMilieu(stack,q);
 	    if (PointsCourant>joueurs[q]->getValeurMain3()){
 	      joueurs[q]->setValeurMain3(PointsCourant);
@@ -862,7 +864,6 @@ void Table::EvaluerMain()
       
     }
   }
-  cout<<"Fin EvaluterMain()"<<endl;
 }
 
 
@@ -886,6 +887,8 @@ void Table::SetClassementJoueurs()
 	    tab_joueurs[i][0]=-1;
 	    tab_joueurs[i][1]=-1;
 	  }
+	  classementJoueurs[i][0]=-1;
+	  classementJoueurs[i][1]=-1;
     }
   
   cout<<"Detection de la main max"<<endl;
@@ -926,7 +929,7 @@ void Table::SetClassementJoueurs()
   for(int i=0;i<NB_CHAISE;i++){
     cout<<"place: "<<tab_joueurs[i][0]<<" "<<tab_joueurs[i][1]<<endl;
   }
-  cout<<"copie du tableau dans l'attribut classement"<<endl;
+  //copie du tableau dans l'attribut classement"<<endl;
   int j=0;
   for (int i=0;i<nbJoueur;i++)
     {
@@ -1119,13 +1122,11 @@ int Table::distribuerLePot(){
       cout<<"Affiche pot: "<<potProvisoire<<endl;
       int sommeGG=potProvisoire/(cpt-deb+nb);
       restePot+=potProvisoire%(cpt-deb+nb);
-      cout<<"Affiche somme gagne: "<<sommeGG<<endl;
-      cout<<"Affiche reste pot: "<<restePot<<endl;
+
       for(int i=deb;i<cpt;i++){
 	int place=classementJoueurs[i][0];
 	cout<<"Afficher place du gagnant "<<place<<endl;
 	if(joueurs[place]->isAllIn()){
-	  cout<<"Teste1"<<endl;
 	  if(joueurs[place]->getPot()>=sommeGG){
 	    potProvisoire-=sommeGG;
 	    joueurs[place]->nouveauGain(sommeGG);
@@ -1139,7 +1140,6 @@ int Table::distribuerLePot(){
 	  }
 	}
 	else{
-	  cout<<"Teste 2"<<endl;
 	  potProvisoire-=sommeGG;
 	  joueurs[place]->nouveauGain(sommeGG);
 	}
@@ -1147,6 +1147,8 @@ int Table::distribuerLePot(){
     }
   }
   cout<<"Après distribution du pot"<<endl;
+  //On envoie les cartes des joueurs 
+  sendCartes();
   //Envoye les gagnants/Perdant ici.........
   for(int i=0;i<NB_CHAISE;i++){
     if(joueurs[i]!=NULL && joueurs[i]->getJetonDebutDeManche()!=joueurs[i]->getJeton()){
@@ -1170,7 +1172,8 @@ void Table::emporteLePot(){
       joueurs[place]->nouveauGain(pot);
       joueurs[place]->setJeton(joueurs[place]->getJetonDebutDeManche());
       pot=0;
-      char gagnantChar[25]="Gagna&";
+      char *moinsUn="-1";
+      char gagnantChar[50]="Gagna&";
       char placeChar[5]="";
       sprintf(placeChar,"%d",place);
       strcat(gagnantChar,placeChar);
@@ -1179,7 +1182,11 @@ void Table::emporteLePot(){
       sprintf(argentChar,"%d",joueurs[place]->getJetonDebutDeManche());
       strcat(gagnantChar,argentChar);
       strcat(gagnantChar,separateur);
-      messageSpec(gagnantChar,25);
+      for(int i=0;i<5;i++){
+	strcat(gagnantChar,moinsUn);
+	strcat(gagnantChar,separateur);
+      }
+      messageSpec(gagnantChar,50);
       return;
     }
     else{
@@ -1195,6 +1202,7 @@ void Table::nettoieTable(){
   instanceAllIn=false;
   petiteBlind=-1;
   grosseBlind=-1;
+  prochainAMiser=-1;
   for(int i=0;i<NB_CHAISE;i++){
     actif[i]=false;
   }
@@ -1250,17 +1258,25 @@ void Table::joueurMise(char *miseChar,int place){
   if(joueurs[dernierAMiser]->isAllIn())
     dernierAMiser=place;
   if(miseEffectue==mise){
-    cout<<"Joueur check"<<endl;
-    pot+=miseJ;
-    joueurs[place]->setJeton(joueurs[place]->getJeton()-miseJ);
-    miserReseau(place,miseJ);
+	  if(miseEffectue>=joueurs[place]->getJetonDebutDeManche()){
+		cout<<"Joueur All in"<<endl;
+		//dernierAMiser=place;
+		joueurAllIn(place);		
+      }
+	else{
+ 	   cout<<"Joueur check"<<endl;
+ 	   pot+=miseJ;
+ 	   joueurs[place]->setJeton(joueurs[place]->getJeton()-miseJ);
+ 	   miserReseau(place,miseJ);
+	}	
   } 
   else{
     if(miseEffectue>mise){
       if(miseEffectue>=joueurs[place]->getJetonDebutDeManche()){
 	cout<<"Joueur All in"<<endl;
-	joueurAllIn(place);
 	dernierAMiser=place;
+	mise=miseEffectue;
+	joueurAllIn(place);
 	
       }
       else{
@@ -1276,8 +1292,9 @@ void Table::joueurMise(char *miseChar,int place){
     else{
       if(miseEffectue>=joueurs[place]->getJetonDebutDeManche()){
 	cout<<"Joueur All in"<<endl;
-	joueurAllIn(place);
 	//dernierAMiser=place;
+	joueurAllIn(place);
+	
       }
       else{
 	cout<<"Joueur fold"<<endl;
@@ -1289,11 +1306,15 @@ void Table::joueurMise(char *miseChar,int place){
 }
 //Le joueur est inactif et on choisie la mise pour lui
 void Table::joueurMiseInactif(int place){
+  if(joueurs[dernierAMiser]->isAllIn())
+      dernierAMiser=place;
   prochainAMiser=aMiser(place);
   if(mise==joueurs[place]->miseDeCetteManche()){
+    cout<<"Il est inactif et il a check"<<endl;
     miserReseau(place,0);
   }
   else{
+    cout<<"Il est inactif et il a fold"<<endl;
     joueurFold(place);
   }
 }
@@ -1527,39 +1548,17 @@ void Table::miserReseau(int place,int miseJ){
   strcat(joueurMise,miseChar);
   strcat(joueurMise,separateur);
   char nextChar[3]="";
-  sprintf(nextChar,"%d",prochainAMiser);
+  if(prochainAMiser==dernierAMiser){
+    sprintf(nextChar,"%d",-1);
+  }
+  else{
+    sprintf(nextChar,"%d",prochainAMiser);
+  }
   strcat(joueurMise,nextChar);
   strcat(joueurMise,separateur);
   messageSpec(joueurMise,30);
 }
-//////////////////Envoie les classementJoueurs et les sommes gagné///////////////////////////
-/////////////////Protocole Gagna&place&somme&/////////////////////////////////////
-void Table::gagnantPerdantSomme(int place){
-  if(joueurs[place]->getJetonDebutDePartie()>=joueurs[place]->getJetonDebutDeManche()){
-    char perdantChar[25]="Perdu&";
-    char placeChar[3]="";
-    sprintf(placeChar,"%d",place);
-    strcat(perdantChar,placeChar);
-    strcat(perdantChar,separateur);
-    char sommePerdu[10]="";
-    sprintf(sommePerdu,"%d",joueurs[place]->getJetonDebutDeManche());
-    strcat(perdantChar,sommePerdu);
-    strcat(perdantChar,separateur);
-    messageSpec(perdantChar,25);
-  }
-  else{
-    char gagnantChar[25]="Gagna&";
-    char placeChar[3]="";
-    sprintf(placeChar,"%d",place);
-    strcat(gagnantChar,placeChar);
-    strcat(gagnantChar,separateur);
-    char sommeGagne[10]="";
-    sprintf(sommeGagne,"%d",joueurs[place]->getJetonDebutDeManche());
-    strcat(gagnantChar,sommeGagne);
-    strcat(gagnantChar,separateur);
-    messageSpec(gagnantChar,25);
-  }
-}
+
 ///////////////////////////Pour transmettre le board////////////////////////////////////////////
 //////////////////////////Protocole Milie&valeur&next&//////////////////////////
 void Table::envoyerBoard(int next,int debBoard){
@@ -1578,6 +1577,67 @@ void Table::envoyerBoard(int next,int debBoard){
     strcat(board,separateur);
   }
   messageSpec(board,50);
+}
+
+
+
+//////////////////Envoie les classementJoueurs et les sommes gagné///////////////////////////
+/////////////////Protocole Gagna&place&somme&/////////////////////////////////////
+void Table::gagnantPerdantSomme(int place){
+  if(joueurs[place]->getJetonDebutDePartie()>=joueurs[place]->getJetonDebutDeManche()){
+    char perdantChar[25]="Perdu&";
+    char placeChar[3]="";
+    sprintf(placeChar,"%d",place);
+    strcat(perdantChar,placeChar);
+    strcat(perdantChar,separateur);
+    char sommePerdu[10]="";
+    sprintf(sommePerdu,"%d",joueurs[place]->getJetonDebutDeManche());
+    strcat(perdantChar,sommePerdu);
+    strcat(perdantChar,separateur);
+    messageSpec(perdantChar,25);
+  }
+  else{
+    char gagnantChar[100]="Gagna&";
+    char placeChar[3]="";
+    sprintf(placeChar,"%d",place);
+    strcat(gagnantChar,placeChar);
+    strcat(gagnantChar,separateur);
+    char sommeGagne[10]="";
+    sprintf(sommeGagne,"%d",joueurs[place]->getJetonDebutDeManche());
+    strcat(gagnantChar,sommeGagne);
+    strcat(gagnantChar,separateur);
+    for(int i=0;i<5;i++){
+      char carteChar[5]="";
+      sprintf(carteChar,"%d",joueurs[place]->getCartesMax(i).getCouleur()*100+joueurs[place]->getCartesMax(i).getValeur());
+      strcat(gagnantChar,carteChar);
+      strcat(gagnantChar,separateur);
+    }
+    messageSpec(gagnantChar,100);
+  }
+}
+
+//////////////Envoie les cartes de chaque joueur////////////////////////////////////
+/////////////Protocole Carte&place&valeur&valeur////////////////////////////////////
+void Table::sendCartes(){
+  int i=0;
+  while(classementJoueurs[i][0]!=-1){
+    int place=classementJoueurs[i][0];
+    char cartePlace[50]="Carte&";
+    char placeChar[]="";
+    sprintf(placeChar,"%d",place);
+    strcat(cartePlace,placeChar);
+    strcat(cartePlace,separateur);
+    char valUn[5]="";
+    sprintf(valUn,"%d",joueurs[place]->getCartes(0).getCouleur()*100+joueurs[place]->getCartes(0).getValeur());
+    strcat(cartePlace,valUn);
+    strcat(cartePlace,separateur);
+    char valDeux[5]="";
+    sprintf(valDeux,"%d",joueurs[place]->getCartes(1).getCouleur()*100+joueurs[place]->getCartes(1).getValeur());
+    strcat(cartePlace,valDeux);
+    strcat(cartePlace,separateur);
+    messageSpec(cartePlace,50);
+    i++;
+  }
 }
 /**********************************************************************************/
 
@@ -1647,6 +1707,7 @@ void Table::actionSpecJoueur(int placeSpec){
 	    char placeChar[3]="";
 	    sprintf(placeChar,"%d",prochainAMiser);
 	    strcat(absentChar,placeChar);
+	    strcat(absentChar,separateur);
 	    messageSpec(absentChar,10);
 	  }
 	  else{
@@ -1670,16 +1731,19 @@ void Table::actionUtilisateur(int placeSpec){
   if(taille==0){
     removeSpectateur(placeSpec);
   }
-  while(strlen(recu)!=0){
+  while(strlen(recu)>0){
     if(recu[0]=='M' && recu[1]=='i' && recu[2]=='s' && recu[3]=='e' && recu[4]=='r'){
       char miseChar[100]="";
       strcpy(recu,decompositionMessage(recu+6,miseChar,1));
       cout<<"Il va miser!!!!!"<<endl;
-      if(spectacteurs[placeSpec]->getDesc()==joueurs[prochainAMiser]->getDesc()){
-	cout<<"Il a miser!!!!!"<<endl;
-	joueurMise(miseChar,prochainAMiser);
-	aJouer=true;
+      if(prochainAMiser!=-1){
+	if(spectacteurs[placeSpec]->getDesc()==joueurs[prochainAMiser]->getDesc()){
+	  cout<<"Il a miser!!!!!"<<endl;
+	  joueurMise(miseChar,prochainAMiser);
+	  aJouer=true;
+	}
       }
+      cout<<"IL a peut être planté ici!"<<endl;
     }
     else{
       if(recu[0]=='J' && recu[1]=='o' && recu[2]=='u' && recu[3]=='e' && recu[4]=='r'){
@@ -1966,6 +2030,5 @@ void Table::erreur(){
 
 
 int comparerCartes(const void *cartes1, const void *cartes2){
-  cout<<"Debut comparerCartes"<<endl;
   return (*(Carte *)cartes1).getValeur() - (*(Carte *)cartes2).getValeur();
 }

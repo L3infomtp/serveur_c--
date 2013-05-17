@@ -7,7 +7,7 @@ class Client{
  private:
   int descClient;
   string nom;
-  float argent;
+  int argent;
   string email;
   string dOB;
   string gender;
@@ -21,12 +21,12 @@ class Client{
  public:
   Client();
   Client(int);
-  Client(int,string,float);
-  Client(int,string,float,string,string,string,string,string,string,string,string,string);
+  Client(int,string,int);
+  Client(int,string,int,string,string,string,string,string,string,string,string,string);
   
   int getDescClient()const;
   string getNom()const;
-  float getArgent()const;
+  int getArgent()const;
   string getEmail()const;
   string getDOB()const;
   string getGender()const;
@@ -37,7 +37,7 @@ class Client{
   string getZipCode()const;
   string getCountry()const;
 
-  void setArgent(const float);
+  void setArgent(const int);
   void setEmail(const string);
   void setDOB(const string);
   void setGender(const string);

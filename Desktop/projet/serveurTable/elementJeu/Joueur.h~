@@ -19,7 +19,7 @@ class Joueur:public Spectateur{
  private:
   int jeton; /** Nombre de jetons du joueur*/
   int jetonDebutDeManche; /** Nombre de jetons en début de manche*/
-  int jetonDebutPartie; /** Nombre de jetons en début de partie*/
+  int jetonDebutDePartie; /** Nombre de jetons en début de partie*/
   Carte cartes[2]; /** Main du joueur*/
   bool actif; /** Indique si le joueur est encore en jeu ou non*/
   bool fold; /** Indique si le joueur s'est couché ou non*/
